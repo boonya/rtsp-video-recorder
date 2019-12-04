@@ -1,0 +1,35 @@
+{
+  "name": "rtsp-video-recorder",
+  "version": "1.0.0-alpha",
+  "description": "Provide an API to record rtsp video stream to filesystem.",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "files": [
+    "build/"
+  ],
+  "scripts": {
+    "build": "./node_modules/.bin/tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "./node_modules/.bin/tslint --config tslint.json 'src/**/*.ts'"
+  },
+  "keywords": [
+    "rtsp",
+    "video",
+    "recorder",
+    "stream",
+    "webcam"
+  ],
+  "author": "Serhii [boonya] Buinytskyi",
+  "license": "MIT",
+  "dependencies": {
+    "moment": "^2.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.14",
+    "prettier": "^1.19.1",
+    "tslint": "^5.20.1",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-config-standard": "^9.0.0",
+    "typescript": "^3.7.2"
+  }
+}
