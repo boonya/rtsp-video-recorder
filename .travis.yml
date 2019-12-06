@@ -1,9 +1,9 @@
 language: node_js
 node_js:
   - stable
-  - "12"
-  - "10"
-  - "8"
+  - 12
+  - 10
+  - 8
 arch:
   - amd64
 os: linux
@@ -11,11 +11,12 @@ dist: bionic
 
 install:
   - npm install
-jobs:
-  include:
-    - stage: "Lint & Test"
-      script: npm run lint
-    - script: npm run test
+before_script:
+  - npm run lint
+  - npm run test
+script:
+  - npm run build
+
 branches:
   only:
     - master
