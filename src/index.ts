@@ -48,7 +48,7 @@ class Recorder {
     this.dirSizeThreshold = options && options.dirSizeThreshold || 0;
     this.maxTryReconnect = options && options.maxTryReconnect || 3;
 
-    this.varifyOptions();
+    this.verifyOptions();
 
     this.timer = null;
     this.writeStream = null;
@@ -78,7 +78,7 @@ class Recorder {
     return this;
   };
 
-  private varifyOptions = () => {
+  private verifyOptions = () => {
     const errors: string[] = [];
 
     /** @todo: Validate dayDirNameFormat & fileNameFormat to be a valid moment format strings */
