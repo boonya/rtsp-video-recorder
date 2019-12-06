@@ -1,0 +1,23 @@
+language: node_js
+node_js:
+  - stable
+  - "12"
+  - "10"
+  - "8"
+arch:
+  - amd64
+os: linux
+dist: bionic
+
+install:
+  - npm install
+jobs:
+  include:
+    - stage: "Lint & Test"
+      script: npm run lint
+    - script: npm run test
+branches:
+  only:
+    - master
+notifications:
+  email: false

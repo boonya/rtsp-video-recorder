@@ -1,6 +1,7 @@
 class RecorderError extends Error {
-  constructor(public message: string, public errors: string[]) {
+  constructor(message: string, public errors: string[] = []) {
     super(message);
+    Object.setPrototypeOf(this, RecorderError.prototype);
   }
 }
 
