@@ -2,6 +2,9 @@
 
 ## Provide an API to record rtsp video stream to filesystem or/and stream it as mp4 source
 
+[![Build Status](https://travis-ci.com/boonya/rtsp-video-recorder.svg?branch=master)](https://travis-ci.com/boonya/rtsp-video-recorder)
+[![Maintainability](https://api.codeclimate.com/v1/badges/3f1bb7b44468808daac0/maintainability)](https://codeclimate.com/github/boonya/rtsp-video-recorder/maintainability)
+
 ### Precondition
 
 This library spawns `ffmpeg` as a child process, so it won't work with no `ffmpeg` package installed.
