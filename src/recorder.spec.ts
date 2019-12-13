@@ -1,4 +1,4 @@
-import Recorder, { RecorderError, RecorderEvents } from '.';
+import Recorder, { RecorderError, RecorderEvents } from './recorder';
 
 jest.useFakeTimers();
 
@@ -34,12 +34,12 @@ describe('Testing events', () => {
   test('START event', (done) => {
     function onStart(data: object) {
       expect(data).toStrictEqual({
-        "dayDirNameFormat": "YYYY.MM.DD",
-        "dirSizeThreshold": null,
-        "duration": null,
-        "fileNameFormat": "YYYY.MM.DD-HH-mm-ss",
-        "path": "path",
-        "uri": "uri"
+        'dayDirNameFormat': 'YYYY.MM.DD',
+        'dirSizeThreshold': null,
+        'duration': null,
+        'fileNameFormat': 'YYYY.MM.DD-HH-mm-ss',
+        'path': 'path',
+        'uri': 'uri',
       });
       done();
     }
@@ -55,12 +55,12 @@ describe('Testing events', () => {
   test('START event on recorder with options defined', (done) => {
     function onStart(data: object) {
       expect(data).toStrictEqual({
-        "dayDirNameFormat": "YYYY.MMM.DD",
-        "dirSizeThreshold": 500,
-        "duration": 3600,
-        "fileNameFormat": "DD.mm.ss",
-        "path": "path",
-        "uri": "uri"
+        'dayDirNameFormat': 'YYYY.MMM.DD',
+        'dirSizeThreshold': 500,
+        'duration': 3600,
+        'fileNameFormat': 'DD.mm.ss',
+        'path': 'path',
+        'uri': 'uri',
       });
       done();
     }

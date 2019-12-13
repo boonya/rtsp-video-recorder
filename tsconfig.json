@@ -9,7 +9,7 @@
     // "jsx": "preserve",                     /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */
     "declaration": true /* Generates corresponding '.d.ts' file. */,
     "declarationMap": true /* Generates a sourcemap for each corresponding '.d.ts' file. */,
-    // "sourceMap": true,                     /* Generates corresponding '.map' file. */
+    "sourceMap": true /* Generates corresponding '.map' file. */,
     // "outFile": "./",                       /* Concatenate and emit output to single file. */
     "outDir": "./build" /* Redirect output structure to the directory. */,
     "rootDir": "./src" /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */,
@@ -23,15 +23,15 @@
     /* Strict Type-Checking Options */
     "strict": true /* Enable all strict type-checking options. */,
     "noImplicitAny": true /* Raise error on expressions and declarations with an implied 'any' type. */,
-    // "strictNullChecks": true,              /* Enable strict null checks. */
+    "strictNullChecks": true /* Enable strict null checks. */,
     // "strictFunctionTypes": true,           /* Enable strict checking of function types. */
-    // "strictPropertyInitialization": true,  /* Enable strict checking of property initialization in classes. */
+    "strictPropertyInitialization": true /* Enable strict checking of property initialization in classes. */,
     // "noImplicitThis": true,                /* Raise error on 'this' expressions with an implied 'any' type. */
-    // "alwaysStrict": true,                  /* Parse in strict mode and emit "use strict" for each source file. */
+    "alwaysStrict": true /* Parse in strict mode and emit "use strict" for each source file. */,
 
     /* Additional Checks */
-    // "noUnusedLocals": true,                /* Report errors on unused locals. */
-    // "noUnusedParameters": true,            /* Report errors on unused parameters. */
+    "noUnusedLocals": true /* Report errors on unused locals. */,
+    "noUnusedParameters": true /* Report errors on unused parameters. */,
     // "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
     // "noFallthroughCasesInSwitch": true,    /* Report errors for fallthrough cases in switch statement. */
 
@@ -57,5 +57,5 @@
     // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "build"]
+  "exclude": ["node_modules", "build", "coverage"]
 }

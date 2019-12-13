@@ -9,10 +9,10 @@ export type Options = {
 export type EventCallback = (...args: any) => void;
 
 export enum Events {
-  START = "start",
-  STOP = "stop",
-  ERROR = "error",
-  CREATED = "created",
-  DELETED = "deleted",
-  FULL = "full",
-};
+  START = 'start',
+  STOP = 'stop',
+  ERROR = 'error',
+  CREATED = 'created',
+  DELETED = 'deleted',
+  FULL = 'full',
+}

@@ -12,7 +12,7 @@ dist: bionic
 install:
   - npm install
 before_script:
-  - npm run lint
+  - npm run lint:prod
   - npm run test
 # script:
 #   - npm run build

@@ -1,14 +1,21 @@
 {
   "defaultSeverity": "error",
   "extends": [
-    "tslint:recommended",
+    "tslint:latest",
     "tslint-config-standard",
     "tslint-config-prettier"
   ],
   "jsRules": {},
   "rules": {
     "ordered-imports": false,
-    "interface-over-type-literal": false
+    "interface-over-type-literal": false,
+    "semicolon": [true, "always"],
+    "whitespace": [true],
+    "quotemark": [true, "single"],
+    "trailing-comma": [true, { "multiline": "always", "singleline": "never" }],
+    "no-trailing-whitespace": true,
+    "no-console": false,
+    "no-debugger": false
   },
   "rulesDirectory": []
 }

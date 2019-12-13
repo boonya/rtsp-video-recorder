@@ -23,7 +23,7 @@ class Recorder {
   constructor(
     private uri: string,
     private path: string,
-    options: Options = {}
+    options: Options = {},
   ) {
     this.dayDirNameFormat = options.dayDirNameFormat || 'YYYY.MM.DD';
     this.fileNameFormat = options.fileNameFormat || 'YYYY.MM.DD-HH-mm-ss';
@@ -43,7 +43,7 @@ class Recorder {
       this.eventEmitter.emit(Events.ERROR, err);
     }
     return this;
-  };
+  }
 
   public stop = () => {
     try {
@@ -52,12 +52,12 @@ class Recorder {
       this.eventEmitter.emit(Events.ERROR, err);
     }
     return this;
-  };
+  }
 
   public on = (event: Events, callback: EventCallback) => {
     this.eventEmitter.on(event, callback);
     return this;
-  };
+  }
 
   private verifyOptions = () => {
     const errors: string[] = [];
@@ -79,7 +79,7 @@ class Recorder {
     if (errors.length) {
       throw new RecorderError('Options are invalid', errors);
     }
-  };
+  }
 
   private getFilePath = (dirname: string, filename: string) => `${this.recordsPath()}/${dirname}/${filename}`;
 
@@ -94,6 +94,9 @@ class Recorder {
     if (!this.duration) {
       this.startRecord();
     } else {
+      if (this.timer !== null) {
+        clearInterval(this.timer);
+      }
       this.timer = setInterval(() => {
         if (this.writeStream) {
           this.writeStream.kill();
@@ -109,7 +112,7 @@ class Recorder {
       path: this.path,
       uri: this.uri,
     });
-  };
+  }
 
   private startRecord = () => {
     const filename = this.getFileName();
@@ -117,15 +120,16 @@ class Recorder {
     const filepath = this.getFilePath(dirname, filename);
     // this.writeStream = this.ffmpeg(filepath);
     this.eventEmitter.emit(Events.CREATED, { filepath, dirname, filename });
-  };
+  }
 
   private stopRecord = () => {
     // this.writeStream.kill();
     this.eventEmitter.emit(Events.STOP);
-  };
+  }
 
+  // @ts-ignore
   private ffmpeg = (filepath: string) => {
-    return childProcess.spawn("ffmpeg",
+    return childProcess.spawn('ffmpeg',
       [
         '-i',
         this.uri,
@@ -136,12 +140,13 @@ class Recorder {
         '128k',
         '-r',
         '25',
-        filepath
+        filepath,
       ],
-      { detached: false }
+      { detached: false },
     );
-  };
+  }
 
+  // @ts-ignore
   private createDirectory = (path: string) => new Promise((resolve, reject) => {
     try {
       fs.lstat(path, (lstatErr, stats) => {
@@ -165,8 +170,9 @@ class Recorder {
     } catch (err) {
       reject(err);
     }
-  });
+  })
 
+  // @ts-ignore
   private removeDirectory = (path: string) => new Promise((resolve, reject) => {
     fs.rmdir(path, (err) => {
       if (err) {
@@ -174,13 +180,13 @@ class Recorder {
       }
       resolve();
     });
-  });
+  })
 }
 
 export {
   Recorder,
   Events as RecorderEvents,
-  RecorderError
+  RecorderError,
 };
 
 export default Recorder;

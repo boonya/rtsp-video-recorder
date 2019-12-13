@@ -2,15 +2,17 @@
   "name": "rtsp-video-recorder",
   "version": "1.0.0-alpha",
   "description": "Provide an API to record rtsp video stream to filesystem.",
-  "main": "build/index.js",
-  "types": "build/index.d.ts",
+  "main": "build/recorder.js",
+  "types": "build/recorder.d.ts",
   "files": [
     "build/"
   ],
   "scripts": {
+    "start": "npm run lint && npm run test && npm run build",
     "build": "./node_modules/.bin/tsc",
     "test": "./node_modules/.bin/jest",
-    "lint": "./node_modules/.bin/tslint --config tslint.json 'src/**/*.ts'"
+    "lint": "./node_modules/.bin/tslint --project tsconfig.json --config tslint.json --format stylish",
+    "lint:prod": "./node_modules/.bin/tslint --project tsconfig.json --config tslint.prod.json --format stylish"
   },
   "keywords": [
     "rtsp",
