@@ -1,18 +1,49 @@
-import Recorder, { RecorderError, RecorderEvents } from './recorder';
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
+import { resolve, dirname, basename } from 'path';
+import { lstatSync } from 'fs';
+import EventEmitter from 'events';
+import Recorder, { RecorderValidationError, RecorderError, RecorderEvents } from './recorder';
 
-jest.useFakeTimers();
+jest.mock('child_process');
+jest.mock('path');
+jest.mock('fs');
+
+let fakeProcess: ChildProcessWithoutNullStreams;
+// @ts-ignore
+spawn.mockImplementation((...args) => {
+  fakeProcess = {
+    // @ts-ignore
+    stderr: new EventEmitter(),
+    // @ts-ignore
+    on: () => null,
+    kill: () => null,
+  };
+  return fakeProcess;
+});
+
+// @ts-ignore
+resolve.mockImplementation((args) => args);
+// @ts-ignore
+dirname.mockImplementation((args) => args);
+// @ts-ignore
+basename.mockImplementation((args) => args);
+
+// @ts-ignore
+lstatSync.mockImplementation((path) => {
+  return { isDirectory: () => true };
+});
 
 describe('Testing errors and validation', () => {
-  test('duration option less than 5 but not equal to 0', () => {
-    expect(() => new Recorder('uri', 'path', { duration: 4 })).toThrow(RecorderError);
+  test('Segment time option less than 5 seconds', () => {
+    expect(() => new Recorder('uri', 'path', { segmentTime: 4 })).toThrow(RecorderValidationError);
   });
 
   test('dirSizeThreshold option less than 200 but not equal to 0', () => {
-    expect(() => new Recorder('uri', 'path', { dirSizeThreshold: 199 })).toThrow(RecorderError);
+    expect(() => new Recorder('uri', 'path', { dirSizeThreshold: 199 })).toThrow(RecorderValidationError);
   });
 
   test('maxTryReconnect option less than 1 but not equal to 0', () => {
-    expect(() => new Recorder('uri', 'path', { maxTryReconnect: -1 })).toThrow(RecorderError);
+    expect(() => new Recorder('uri', 'path', { maxTryReconnect: -1 })).toThrow(RecorderValidationError);
   });
 });
 
@@ -22,59 +53,110 @@ describe('Testing what public methods return', () => {
   });
 
   test('Method .stop() should return this instance', () => {
-    expect(new Recorder('uri', 'path').stop()).toBeInstanceOf(Recorder);
+    expect(new Recorder('uri', 'path').start().stop()).toBeInstanceOf(Recorder);
   });
 
   test('Method .on() should return this instance', () => {
-    expect(new Recorder('uri', 'path').on(RecorderEvents.START, () => null)).toBeInstanceOf(Recorder);
+    expect(new Recorder('uri', 'path').on(RecorderEvents.STARTED, () => null)).toBeInstanceOf(Recorder);
   });
 });
 
 describe('Testing events', () => {
-  test('START event', (done) => {
+  test('Recorder STARTED with no additional options defined', (done) => {
     function onStart(data: object) {
       expect(data).toStrictEqual({
-        'dayDirNameFormat': 'YYYY.MM.DD',
-        'dirSizeThreshold': null,
-        'duration': null,
-        'fileNameFormat': 'YYYY.MM.DD-HH-mm-ss',
-        'path': 'path',
-        'uri': 'uri',
+        dateFormat: '%Y.%m.%d',
+        dirSizeThreshold: null,
+        segmentTime: 600,
+        timeFormat: '%H.%M.%S',
+        path: 'path',
+        uri: 'uri',
       });
       done();
     }
 
     new Recorder('uri', 'path')
-      .on(RecorderEvents.START, onStart)
+      .on(RecorderEvents.STARTED, onStart)
       .start();
-
-    jest.runOnlyPendingTimers();
-    expect(setInterval).toHaveBeenCalledTimes(0);
   });
 
-  test('START event on recorder with options defined', (done) => {
+  test('Recorder STARTED with options defined', (done) => {
     function onStart(data: object) {
       expect(data).toStrictEqual({
-        'dayDirNameFormat': 'YYYY.MMM.DD',
-        'dirSizeThreshold': 500,
-        'duration': 3600,
-        'fileNameFormat': 'DD.mm.ss',
-        'path': 'path',
-        'uri': 'uri',
+        dateFormat: '%Y %B %d',
+        dirSizeThreshold: 500,
+        segmentTime: 3600,
+        timeFormat: '%I.%M.%S%p',
+        path: 'path',
+        uri: 'uri',
       });
       done();
     }
 
     new Recorder('uri', 'path', {
-      dayDirNameFormat: 'YYYY.MMM.DD',
+      dateFormat: '%Y %B %d',
       dirSizeThreshold: 500,
-      duration: 3600,
-      fileNameFormat: 'DD.mm.ss',
+      segmentTime: 3600,
+      timeFormat: '%I.%M.%S%p',
     })
-      .on(RecorderEvents.START, onStart)
+      .on(RecorderEvents.STARTED, onStart)
+      .start();
+  });
+
+  test('FILE_CREATED on recorder instantiated with no options defined', (done) => {
+    function onCreated(data: object) {
+      expect(data).toStrictEqual({
+        filepath: 'path/2020.01.03/01.37.53.mp4',
+        dirpath: 'path/2020.01.03/01.37.53.mp4',
+        dirname: 'path/2020.01.03/01.37.53.mp4',
+        filename: 'path/2020.01.03/01.37.53.mp4',
+      });
+      done();
+    }
+
+    new Recorder('uri', 'path')
+      .on(RecorderEvents.FILE_CREATED, onCreated)
       .start();
 
-    jest.runOnlyPendingTimers();
-    expect(setInterval).toHaveBeenCalledTimes(1);
+    const message = `\n[segment @ 0x000000\] Opening 'path/2020.01.03/01.37.53.mp4' for writing\nOutput #0, segment, to 'path/%Y.%m.%d/%H.%M.%S.mp4'`;
+    const buffer = Buffer.from(message, 'utf8');
+    fakeProcess.stderr.emit('data', buffer);
+  });
+
+  test('STOPED', (done) => {
+    function onStop(data: string) {
+      expect(data).toStrictEqual('Programmatically stopped');
+      done();
+    }
+
+    new Recorder('uri', 'path')
+      .start()
+      .on(RecorderEvents.STOPPED, onStop)
+      .stop();
+  });
+
+  test('ERROR if stop on not started', (done) => {
+    function onError(err: RecorderError) {
+      expect(err).toBeInstanceOf(RecorderError);
+      expect(err.message).toStrictEqual('No process spawned');
+      done();
+    }
+
+    new Recorder('uri', 'path')
+      .on(RecorderEvents.ERROR, onError)
+      .stop();
+  });
+
+  test('ERROR if start on already started', (done) => {
+    function onError(err: RecorderError) {
+      expect(err).toBeInstanceOf(RecorderError);
+      expect(err.message).toStrictEqual('Process already spawned');
+      done();
+    }
+
+    new Recorder('uri', 'path')
+      .on(RecorderEvents.ERROR, onError)
+      .start()
+      .start();
   });
 });

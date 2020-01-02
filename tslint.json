@@ -8,6 +8,7 @@
   "jsRules": {},
   "rules": {
     "ordered-imports": false,
+    "object-literal-sort-keys": false,
     "interface-over-type-literal": false,
     "semicolon": [true, "always"],
     "whitespace": [true],

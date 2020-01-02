@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "start": "npm run lint && npm run test && npm run build",
+    "dev": "./node_modules/.bin/tsc --watch",
     "build": "./node_modules/.bin/tsc",
     "test": "./node_modules/.bin/jest",
     "lint": "./node_modules/.bin/tslint --project tsconfig.json --config tslint.json --format stylish",
@@ -23,9 +24,7 @@
   ],
   "author": "Serhii [boonya] Buinytskyi",
   "license": "MIT",
-  "dependencies": {
-    "moment": "^2.24.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/jest": "^24.0.23",
     "@types/node": "^12.12.14",

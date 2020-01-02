@@ -1,7 +1,8 @@
 export type Options = {
-  duration?: number;
-  dayDirNameFormat?: string;
-  fileNameFormat?: string;
+  title?: string;
+  dateFormat?: string;
+  timeFormat?: string;
+  segmentTime?: number;
   dirSizeThreshold?: number;
   maxTryReconnect?: number;
 };
@@ -9,10 +10,12 @@ export type Options = {
 export type EventCallback = (...args: any) => void;
 
 export enum Events {
-  START = 'start',
-  STOP = 'stop',
+  STARTED = 'started',
+  STOPPED = 'stopped',
   ERROR = 'error',
-  CREATED = 'created',
+  PROGRESS = 'progress',
+  FILE_CREATED = 'file_created',
+  DIRECTORY_CREATED = 'directory_created',
   DELETED = 'deleted',
-  FULL = 'full',
+  DISK_FULL = 'disk_full',
 }
