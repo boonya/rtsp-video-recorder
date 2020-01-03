@@ -17,6 +17,16 @@ sudo apt install -y ffmpeg
 
 If you prefer different package manager or work on different linux distro use appropriate to your system command.
 
+### Istallation
+
+Installation process of this lib as simple as it can be. Just run
+
+```bash
+npm i rtsp-video-recorder
+```
+
+And after that you can use is as on example below
+
 ### Example
 
 ```ts
