@@ -1,10 +1,9 @@
 export type Options = {
   title?: string;
-  dateFormat?: string;
-  timeFormat?: string;
+  directoryPattern?: string;
+  filenamePattern?: string;
   segmentTime?: number;
   dirSizeThreshold?: number;
-  maxTryReconnect?: number;
 };
 
 export type EventCallback = (...args: any) => void;

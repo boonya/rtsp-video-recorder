@@ -67,10 +67,22 @@ It may be relative but better to define it in absolute manner.
 
 ### Options
 
+#### directoryPattern
+
+Directory name pattern. By defiult it is `%Y.%m.%d` which will be translated to e.g. `2020.01.03`
+
+_Accepts C++ strftime specifiers:_ http://www.cplusplus.com/reference/ctime/strftime/
+
+#### filenamePattern
+
+File name pattern. By defiult it is `%H.%M.%S` which will be translated to e.g. `03.19.15`
+
+_Accepts C++ strftime specifiers:_ http://www.cplusplus.com/reference/ctime/strftime/
+
 #### segmentTime
 
 Duration of one video file (seconds).
-600 seconds or 1 hour by default if not defined.
+600 seconds or 10 minutes by default if not defined.
 
 #### title
 

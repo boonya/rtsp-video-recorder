@@ -1,11 +1,9 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
-import { resolve, dirname, basename } from 'path';
 import { lstatSync } from 'fs';
 import EventEmitter from 'events';
 import Recorder, { RecorderValidationError, RecorderError, RecorderEvents } from './recorder';
 
 jest.mock('child_process');
-jest.mock('path');
 jest.mock('fs');
 
 let fakeProcess: ChildProcessWithoutNullStreams;
@@ -22,13 +20,6 @@ spawn.mockImplementation((...args) => {
 });
 
 // @ts-ignore
-resolve.mockImplementation((args) => args);
-// @ts-ignore
-dirname.mockImplementation((args) => args);
-// @ts-ignore
-basename.mockImplementation((args) => args);
-
-// @ts-ignore
 lstatSync.mockImplementation((path) => {
   return { isDirectory: () => true };
 });
@@ -40,10 +31,6 @@ describe('Testing errors and validation', () => {
 
   test('dirSizeThreshold option less than 200 but not equal to 0', () => {
     expect(() => new Recorder('uri', 'path', { dirSizeThreshold: 199 })).toThrow(RecorderValidationError);
-  });
-
-  test('maxTryReconnect option less than 1 but not equal to 0', () => {
-    expect(() => new Recorder('uri', 'path', { maxTryReconnect: -1 })).toThrow(RecorderValidationError);
   });
 });
 
@@ -94,10 +81,10 @@ describe('Testing events', () => {
     }
 
     new Recorder('uri', 'path', {
-      dateFormat: '%Y %B %d',
+      directoryPattern: '%Y %B %d',
       dirSizeThreshold: 500,
       segmentTime: 3600,
-      timeFormat: '%I.%M.%S%p',
+      filenamePattern: '%I.%M.%S%p',
     })
       .on(RecorderEvents.STARTED, onStart)
       .start();
@@ -107,9 +94,9 @@ describe('Testing events', () => {
     function onCreated(data: object) {
       expect(data).toStrictEqual({
         filepath: 'path/2020.01.03/01.37.53.mp4',
-        dirpath: 'path/2020.01.03/01.37.53.mp4',
-        dirname: 'path/2020.01.03/01.37.53.mp4',
-        filename: 'path/2020.01.03/01.37.53.mp4',
+        dirpath: 'path/2020.01.03',
+        dirname: '2020.01.03',
+        filename: '01.37.53.mp4',
       });
       done();
     }
@@ -118,7 +105,7 @@ describe('Testing events', () => {
       .on(RecorderEvents.FILE_CREATED, onCreated)
       .start();
 
-    const message = `\n[segment @ 0x000000\] Opening 'path/2020.01.03/01.37.53.mp4' for writing\nOutput #0, segment, to 'path/%Y.%m.%d/%H.%M.%S.mp4'`;
+    const message = `[segment @ 0x000000\] Opening 'path/2020.01.03/01.37.53.mp4' for writing`;
     const buffer = Buffer.from(message, 'utf8');
     fakeProcess.stderr.emit('data', buffer);
   });

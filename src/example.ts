@@ -7,6 +7,8 @@ try {
     {
       title: 'Test Camera',
       segmentTime: 30,
+      directoryPattern: 'Test Cam Dir %Y.%m.%d',
+      filenamePattern: 'Test Cam File %H.%M.%S',
     },
   );
 

@@ -24,10 +24,13 @@
   ],
   "author": "Serhii [boonya] Buinytskyi",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "strftime": "^0.10.0"
+  },
   "devDependencies": {
     "@types/jest": "^24.0.23",
     "@types/node": "^12.12.14",
+    "@types/strftime": "^0.9.2",
     "jest": "^24.9.0",
     "prettier": "^1.19.1",
     "ts-jest": "^24.2.0",

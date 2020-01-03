@@ -1,7 +1,9 @@
 import fs from 'fs';
-import { resolve as pathResolve, dirname as pathDirname, basename as pathBasename } from 'path';
+import pathApi from 'path';
 import EventEmitter from 'events';
-import { ChildProcessWithoutNullStreams as ChildProcess, spawn, exec } from 'child_process';
+import { ChildProcessWithoutNullStreams as ChildProcess, spawn } from 'child_process';
+
+import strftime from 'strftime';
 
 import { RecorderError, RecorderValidationError } from './error';
 import { Options, Events, EventCallback } from './types';
@@ -14,14 +16,12 @@ class Recorder {
   /**
    * @READ: http://www.cplusplus.com/reference/ctime/strftime/
    */
-  private dateFormat: string = '%Y.%m.%d';
-  private timeFormat: string = '%H.%M.%S';
+  private directoryPattern: string = '%Y.%m.%d';
+  private filenamePattern: string = '%H.%M.%S';
 
   private segmentTime: number = 600; // 10 minutes or 600 seconds
   private dirSizeThreshold: number | null;
-  private maxTryReconnect: number | null;
 
-  private outputStarted = false;
   private process: ChildProcess | null = null;
   private eventEmitter: EventEmitter;
 
@@ -31,11 +31,10 @@ class Recorder {
     options: Options = {},
   ) {
     this.title = options.title;
-    this.dateFormat = options.dateFormat || this.dateFormat;
-    this.timeFormat = options.timeFormat || this.timeFormat;
+    this.directoryPattern = options.directoryPattern || this.directoryPattern;
+    this.filenamePattern = options.filenamePattern || this.filenamePattern;
     this.segmentTime = options.segmentTime || this.segmentTime;
     this.dirSizeThreshold = options.dirSizeThreshold || null;
-    this.maxTryReconnect = options.maxTryReconnect || null;
 
     this.verifyOptions();
 
@@ -50,8 +49,8 @@ class Recorder {
       return this;
     }
     this.eventEmitter.emit(Events.STARTED, {
-      dateFormat: this.dateFormat,
-      timeFormat: this.timeFormat,
+      dateFormat: this.directoryPattern,
+      timeFormat: this.filenamePattern,
       segmentTime: this.segmentTime,
       dirSizeThreshold: this.dirSizeThreshold,
       path: this.path,
@@ -88,10 +87,6 @@ class Recorder {
       errors.push('There is no sence to set dirSizeThreshold value to less that 200 MB');
     }
 
-    if (this.maxTryReconnect && this.maxTryReconnect < 1) {
-      errors.push('It\'s not possible to make less than one try of reconnection.');
-    }
-
     try {
       const path = this.getBaseDirPath();
       if (!this.isDirectoryExist(path)) {
@@ -106,10 +101,14 @@ class Recorder {
     }
   }
 
-  private getBaseDirPath = () => pathResolve(this.path);
+  private getBaseDirPath = () => pathApi.resolve(this.path);
+
+  private getDirPath = () => {
+    return `${this.getBaseDirPath()}/${this.directoryPattern}`;
+  }
 
   private getFilePath = () => {
-    return `${this.getBaseDirPath()}/${this.dateFormat}/${this.timeFormat}.${this.EXT}`;
+    return `${this.getDirPath()}/${this.filenamePattern}.${this.EXT}`;
   }
 
   private startRecord = () => {
@@ -126,7 +125,6 @@ class Recorder {
   }
 
   private stopRecord = () => {
-    this.outputStarted = false;
     if (!this.process) {
       throw new RecorderError('No process spawned');
     }
@@ -148,12 +146,8 @@ class Recorder {
         ...(this.title ? ['-metadata', `title=${this.title}`] : []),
         '-f',
         'segment',
-        '-segment_atclocktime',
-        '1',
         '-segment_time',
         `${this.segmentTime}`,
-        '-write_empty_segments',
-        '1',
         '-reset_timestamps',
         '1',
         '-strftime',
@@ -163,9 +157,17 @@ class Recorder {
       { detached: false },
     );
 
-    this.runDirectoryProvider(this.process);
-
     this.process.stderr.on('data', (buffer: Buffer) => {
+      try {
+        this.ensureDailyDirectoryExists();
+      } catch (err) {
+        this.eventEmitter.emit(Events.ERROR, err);
+        if (this.process) {
+          this.process.kill();
+        }
+        return;
+      }
+
       this.eventEmitter.emit(Events.PROGRESS, buffer);
       this.logFileCreation(buffer);
     });
@@ -182,53 +184,25 @@ class Recorder {
   }
 
   private logFileCreation(buffer: Buffer) {
-    const firstOpeningPattern = new RegExp(`\n\[segment @ 0x[0-9a-f]+\] Opening '(.+)' for writing\nOutput #0, segment, to '(.+)'`);
     const openingPattern = new RegExp(`\[segment @ 0x[0-9a-f]+\] Opening '(.+)' for writing`);
     const failedPattern = new RegExp(`\[segment @ 0x[0-9a-f]+\] Failed to open segment '(.+)'`);
 
     const message = buffer.toString();
 
-    const firstOpeningMatch = message.match(firstOpeningPattern);
     const openingMatch = message.match(openingPattern);
     const failedMatch = message.match(failedPattern);
-
-    if (firstOpeningMatch) {
-      this.outputStarted = true;
-    }
 
     if (failedMatch) {
       this.eventEmitter.emit(Events.ERROR, new RecorderError(`Failed to open file '${failedMatch[1]}'.`));
     }
 
-    if (this.outputStarted && openingMatch) {
+    if (openingMatch) {
       const filepath = openingMatch[1];
-      const dirpath = pathDirname(filepath);
-      const dirname = pathBasename(dirpath);
-      const filename = pathBasename(filepath);
+      const dirpath = pathApi.dirname(filepath);
+      const dirname = pathApi.basename(dirpath);
+      const filename = pathApi.basename(filepath);
       this.eventEmitter.emit(Events.FILE_CREATED, { filepath, dirpath, dirname, filename });
     }
-  }
-
-  private runDirectoryProvider = ({ stderr }: ChildProcess) => {
-    stderr.on('data', () => {
-      // tslint:disable-next-line: no-floating-promises
-      (async () => {
-        const currentDate = await this.getCurrentDate();
-        this.ensureDailyDirectoryExists(currentDate);
-      })();
-    });
-  }
-
-  private getCurrentDate = (): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      exec(`date +${this.dateFormat}`, (err, stdout) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(stdout.replace('\n', ''));
-      });
-    });
   }
 
   private isDirectoryExist = (path: string) => {
@@ -240,19 +214,13 @@ class Recorder {
     }
   }
 
-  private ensureDailyDirectoryExists = (currentDate: string) => {
-    const path = `${this.getBaseDirPath()}/${currentDate}`;
-    try {
-      const stats = fs.lstatSync(path);
-      if (stats.isDirectory()) {
-        return;
-      }
-    } catch (err) {
-      fs.mkdirSync(path, 0o777);
-      this.eventEmitter.emit(Events.DIRECTORY_CREATED, { path });
+  private ensureDailyDirectoryExists = () => {
+    const path = strftime(this.getDirPath());
+    if (this.isDirectoryExist(path)) {
       return;
     }
-    this.eventEmitter.emit(Events.ERROR, new RecorderError(`${path} is not a directory`));
+    fs.mkdirSync(path, 0o777);
+    this.eventEmitter.emit(Events.DIRECTORY_CREATED, { path });
   }
 }
 
