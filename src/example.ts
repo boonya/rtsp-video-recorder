@@ -6,7 +6,7 @@ try {
     'Recorder',
     {
       title: 'Test Camera',
-      segmentTime: 15,
+      segmentTime: 30,
     },
   );
 

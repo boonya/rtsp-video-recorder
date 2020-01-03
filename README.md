@@ -19,58 +19,59 @@ If you prefer different package manager or work on different linux distro use ap
 
 ### Example
 
-```js
-import Recorder from "rtsp-video-recorder";
+```ts
+import Recorder, { RecorderEvents } from "rtsp-video-recorder";
 
-const recorder = new Recorder({
-  uri: "rtsp://username:password@host/path",
-  duration: 60, // seconds
-  path: "/Users/username/Vvideos/Recorder",
-  dirSizeThreshold: 1024, // MB
-  maxTryReconnect: 15
+const recorder = new Recorder("rtsp://username:password@host/path", "/media/Recorder", {
+  title: "Test Camera",
+  segmentTime: 60
 });
 
 // Start recording
 recorder.start();
 
-recorder.on("start", () => {
+recorder.on(RecorderEvents.STARTED, () => {
   /** Do what you need in case of recording started */
 });
 
-recorder.on("stop", () => {
+recorder.on(RecorderEvents.STOPPED, () => {
   /** Do what you need in case of recording stopped */
 });
 
-recorder.on("error", () => {
+recorder.on(RecorderEvents.ERROR, () => {
   /** Do what you need in case of recording error */
 });
 
-recorder.on("file", () => {
-  /** Do what you need in case of new records file created */
+recorder.on(RecorderEvents.DIRECTORY_CREATED, () => {
+  /** Do what you need in case of new daily directory created */
+});
+
+recorder.on(RecorderEvents.FILE_CREATED, () => {
+  /** Do what you need in case of new file created */
 });
 
 // Stop recording
 recorder.stop();
 ```
 
-### Options
+### Properties
 
 #### uri
 
 RTSP stream URI.
 
-#### duration
-
-Duration of one video file (seconds).
-
 #### path
 
-Absolute path to the recordings folder.
+Path to the directory for video records.
+It may be relative but better to define it in absolute manner.
 
-#### dirSizeThreshold
+### Options
 
-Max size of records folder (MB).
+#### segmentTime
 
-#### maxTryReconnect
+Duration of one video file (seconds).
+600 seconds or 1 hour by default if not defined.
 
-max count for reconnects.
+#### title
+
+Title of video file
