@@ -1,14 +1,14 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import { lstatSync } from 'fs';
 import EventEmitter from 'events';
-import Recorder, { RecorderValidationError, RecorderError, RecorderEvents } from './recorder';
+import Recorder, { RecorderValidationError, RecorderError, RecorderEvents } from '../src/recorder';
 
 jest.mock('child_process');
 jest.mock('fs');
 
 let fakeProcess: ChildProcessWithoutNullStreams;
 // @ts-ignore
-spawn.mockImplementation((...args) => {
+spawn.mockImplementation((...args: any[]) => {
   fakeProcess = {
     // @ts-ignore
     stderr: new EventEmitter(),
@@ -20,7 +20,7 @@ spawn.mockImplementation((...args) => {
 });
 
 // @ts-ignore
-lstatSync.mockImplementation((path) => {
+lstatSync.mockImplementation((path: string) => {
   return { isDirectory: () => true };
 });
 

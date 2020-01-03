@@ -15,6 +15,6 @@ export enum Events {
   PROGRESS = 'progress',
   FILE_CREATED = 'file_created',
   DIRECTORY_CREATED = 'directory_created',
-  DELETED = 'deleted',
-  DISK_FULL = 'disk_full',
+  DELETED = 'deleted', // Is not supported yet
+  DISK_FULL = 'disk_full', // Is not supported yet
 }
