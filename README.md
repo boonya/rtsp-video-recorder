@@ -2,8 +2,11 @@
 
 ## Provides an API to record rtsp video stream as a mp4 files splitted out on segments
 
-[![Build Status](https://travis-ci.com/boonya/rtsp-video-recorder.svg?branch=master)](https://travis-ci.com/boonya/rtsp-video-recorder)
-[![Maintainability](https://api.codeclimate.com/v1/badges/3f1bb7b44468808daac0/maintainability)](https://codeclimate.com/github/boonya/rtsp-video-recorder/maintainability)
+[![build status](https://img.shields.io/travis/com/boonya/rtsp-video-recorder?label=build%20status)](https://travis-ci.com/boonya/rtsp-video-recorder)
+[![npm](https://img.shields.io/npm/v/rtsp-video-recorder)](https://www.npmjs.com/package/rtsp-video-recorder)
+[![maintainability](https://img.shields.io/codeclimate/maintainability-percentage/boonya/rtsp-video-recorder?label=Maintainability)](https://codeclimate.com/github/boonya/rtsp-video-recorder/maintainability)
+![bundle size](https://img.shields.io/bundlephobia/min/rtsp-video-recorder)
+![dependencies](https://img.shields.io/librariesio/release/npm/rtsp-video-recorder)
 
 ### Precondition
 
@@ -17,7 +20,7 @@ sudo apt install -y ffmpeg
 
 If you prefer different package manager or work on different linux distro use appropriate to your system command.
 
-### Istallation
+### Installation
 
 Installation process of this lib as simple as it can be. Just run
 
