@@ -4,7 +4,7 @@
 
 [![build status](https://img.shields.io/travis/com/boonya/rtsp-video-recorder?label=build%20status)](https://travis-ci.com/boonya/rtsp-video-recorder)
 [![npm](https://img.shields.io/npm/v/rtsp-video-recorder)](https://www.npmjs.com/package/rtsp-video-recorder)
-[![maintainability](https://img.shields.io/codeclimate/maintainability-percentage/boonya/rtsp-video-recorder?label=Maintainability)](https://codeclimate.com/github/boonya/rtsp-video-recorder/maintainability)
+[![maintainability](https://img.shields.io/codeclimate/maintainability-percentage/boonya/rtsp-video-recorder?label=maintainability)](https://codeclimate.com/github/boonya/rtsp-video-recorder/maintainability)
 ![bundle size](https://img.shields.io/bundlephobia/min/rtsp-video-recorder)
 ![dependencies](https://img.shields.io/librariesio/release/npm/rtsp-video-recorder)
 

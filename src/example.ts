@@ -6,7 +6,7 @@ try {
     'Recorder',
     {
       title: 'Test Camera',
-      segmentTime: 30,
+      segmentTime: 60,
       directoryPattern: 'cam-directory-%Y.%m.%d',
       filenamePattern: 'cam-file-%H.%M.%S',
     },

@@ -4,10 +4,6 @@
   "description": "Provide an API to record rtsp video stream to filesystem.",
   "main": "dist/recorder.js",
   "types": "dist/recorder.d.ts",
-  "directories": {
-    "test": "test"
-  },
-  "homepage": "https://github.com/boonya/rtsp-video-recorder",
   "repository": {
     "type": "git",
     "url": "https://github.com/boonya/rtsp-video-recorder"
