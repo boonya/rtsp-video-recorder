@@ -1,17 +1,17 @@
-import fs from 'fs';
 import pathApi from 'path';
 import EventEmitter from 'events';
 import { ChildProcessWithoutNullStreams as ChildProcess, spawn } from 'child_process';
 
 import strftime from 'strftime';
 
+import { IRecorder, Options, Events, EventCallback } from './types';
 import { RecorderError, RecorderValidationError } from './error';
-import { Options, Events, EventCallback } from './types';
+import Validators from './validators';
+import Helpers from './helpers';
 
-class Recorder {
-  private readonly EXT = 'mp4';
-
+class Recorder implements IRecorder {
   private title?: string;
+  private ffmpegBinary: string = 'ffmpeg';
 
   /**
    * @READ: http://www.cplusplus.com/reference/ctime/strftime/
@@ -20,7 +20,7 @@ class Recorder {
   private filenamePattern: string = '%H.%M.%S';
 
   private segmentTime: number = 600; // 10 minutes or 600 seconds
-  private dirSizeThreshold: number | null;
+  private dirSizeThreshold: number | null; // bytes
 
   private process: ChildProcess | null = null;
   private eventEmitter: EventEmitter;
@@ -30,13 +30,17 @@ class Recorder {
     private path: string,
     options: Options = {},
   ) {
+    const errors = Validators.verifyAllOptions(path, options);
+    if (errors.length) {
+      throw new RecorderValidationError('Options invalid', errors);
+    }
+
     this.title = options.title;
+    this.ffmpegBinary = options.ffmpegBinary || this.ffmpegBinary;
     this.directoryPattern = options.directoryPattern || this.directoryPattern;
     this.filenamePattern = options.filenamePattern || this.filenamePattern;
-    this.segmentTime = options.segmentTime || this.segmentTime;
-    this.dirSizeThreshold = options.dirSizeThreshold || null;
-
-    this.verifyOptions();
+    this.segmentTime = options.segmentTime ? Helpers.transformSegmentTime(options.segmentTime) : this.segmentTime;
+    this.dirSizeThreshold = options.dirSizeThreshold ? Helpers.transformDirSizeThreshold(options.dirSizeThreshold) : null;
 
     this.eventEmitter = new EventEmitter();
   }
@@ -74,43 +78,6 @@ class Recorder {
     return this;
   }
 
-  private verifyOptions = () => {
-    const errors: string[] = [];
-
-    /** @todo: Validate dateFormat & timeFormat to be a valid cpp strftime format strings */
-
-    if (this.segmentTime < 5) {
-      errors.push('There is no sence to set duration value to less that 5 seconds');
-    }
-
-    if (this.dirSizeThreshold && this.dirSizeThreshold < 200) {
-      errors.push('There is no sence to set dirSizeThreshold value to less that 200 MB');
-    }
-
-    try {
-      const path = this.getBaseDirPath();
-      if (!this.isDirectoryExist(path)) {
-        errors.push(`${path} is not a directory`);
-      }
-    } catch (err) {
-      errors.push(err.message);
-    }
-
-    if (errors.length) {
-      throw new RecorderValidationError('Options are invalid', errors);
-    }
-  }
-
-  private getBaseDirPath = () => pathApi.resolve(this.path);
-
-  private getDirPath = () => {
-    return `${this.getBaseDirPath()}/${this.directoryPattern}`;
-  }
-
-  private getFilePath = () => {
-    return `${this.getDirPath()}/${this.filenamePattern}.${this.EXT}`;
-  }
-
   private startRecord = () => {
     // Check for space availability (if no space available then emit FULL event and clear directory)
     // console.log('du -s ->>>', this.recordsPath());
@@ -118,21 +85,21 @@ class Recorder {
     // console.log('ls', {process});
 
     if (this.process) {
-      throw new RecorderError('Process already spawned');
+      throw new RecorderError('Process already spawned.');
     }
 
-    this.ffmpegRun();
+    this.process = this.spawnFFMPEG();
   }
 
   private stopRecord = () => {
     if (!this.process) {
-      throw new RecorderError('No process spawned');
+      throw new RecorderError('No process spawned.');
     }
     this.process.kill();
   }
 
-  private ffmpegRun = () => {
-    this.process = spawn('ffmpeg',
+  private spawnFFMPEG = () => {
+    const process = spawn(`${this.ffmpegBinary}`,
       [
         '-i',
         this.uri,
@@ -157,7 +124,7 @@ class Recorder {
       { detached: false },
     );
 
-    this.process.stderr.on('data', (buffer: Buffer) => {
+    process.stderr.on('data', (buffer: Buffer) => {
       try {
         this.ensureDailyDirectoryExists();
       } catch (err) {
@@ -172,15 +139,15 @@ class Recorder {
       this.logFileCreation(buffer);
     });
 
-    this.process.on('error', (...args) => {
-      this.eventEmitter.emit(Events.ERROR, ...args);
+    process.on('error', (error) => {
+      this.eventEmitter.emit(Events.ERROR, new RecorderError(error));
     });
 
-    this.process.on('close', (code) => {
+    process.on('close', (code) => {
       this.eventEmitter.emit(Events.STOPPED, `FFMPEG process exited with code ${code}`);
     });
 
-    return this.process;
+    return process;
   }
 
   private logFileCreation(buffer: Buffer) {
@@ -205,26 +172,27 @@ class Recorder {
     }
   }
 
-  private isDirectoryExist = (path: string) => {
-    try {
-      const stats = fs.lstatSync(path);
-      return stats.isDirectory();
-    } catch {
-      return false;
-    }
-  }
-
   private ensureDailyDirectoryExists = () => {
-    const path = strftime(this.getDirPath());
-    if (this.isDirectoryExist(path)) {
+    const pathPattern = this.getDirPath();
+    const path = strftime(pathPattern);
+    if (Helpers.isDirectoryExist(path)) {
       return;
     }
-    fs.mkdirSync(path, 0o777);
+    Helpers.createDirectory(path);
     this.eventEmitter.emit(Events.DIRECTORY_CREATED, { path });
+  }
+
+  private getDirPath = () => {
+    return Helpers.getDirPath(this.path, this.directoryPattern);
+  }
+
+  private getFilePath = () => {
+    return Helpers.getFilePath(this.getDirPath(), this.filenamePattern);
   }
 }
 
 export {
+  IRecorder,
   Recorder,
   Events as RecorderEvents,
   RecorderError,

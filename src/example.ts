@@ -9,6 +9,7 @@ try {
       segmentTime: 60,
       directoryPattern: 'cam-directory-%Y.%m.%d',
       filenamePattern: 'cam-file-%H.%M.%S',
+      dirSizeThreshold: '1G',
     },
   );
 
@@ -19,8 +20,8 @@ try {
     .on(RecorderEvents.FILE_CREATED, (...args) => console.log('FILE_CREATED: ', ...args))
     .on(RecorderEvents.DIRECTORY_CREATED, (...args) => console.log('DIRECTORY_CREATED: ', ...args))
     // .on(RecorderEvents.PROGRESS, (buffer: Buffer) => console.log('PROGRESS: ', buffer.toString()))
-    .on(RecorderEvents.DELETED, (...args) => console.log('DELETED: ', ...args))
-    .on(RecorderEvents.DISK_FULL, (...args) => console.log('DISK_FULL: ', ...args))
+    .on(RecorderEvents.SPACE_WIPED, (...args) => console.log('SPACE_WIPED: ', ...args))
+    .on(RecorderEvents.SPACE_FULL, (...args) => console.log('SPACE_FULL: ', ...args))
     .start();
 } catch (err) {
   console.error(err.message, { err });

@@ -1,9 +1,13 @@
+export type SegmentTimeOption = number | string;
+export type DirSizeThresholdOption = number | string;
+
 export type Options = {
   title?: string;
+  ffmpegBinary?: string;
   directoryPattern?: string;
   filenamePattern?: string;
-  segmentTime?: number;
-  dirSizeThreshold?: number;
+  segmentTime?: SegmentTimeOption;
+  dirSizeThreshold?: DirSizeThresholdOption;
 };
 
 export type EventCallback = (...args: any) => void;
@@ -15,6 +19,24 @@ export enum Events {
   PROGRESS = 'progress',
   FILE_CREATED = 'file_created',
   DIRECTORY_CREATED = 'directory_created',
-  DELETED = 'deleted', // Is not supported yet
-  DISK_FULL = 'disk_full', // Is not supported yet
+  SPACE_WIPED = 'space_wiped',
+  SPACE_FULL = 'space_full',
+}
+
+export interface IRecorder {
+  start: () => this;
+  stop: () => this;
+  on: (event: Events, callback: EventCallback) => this;
+}
+
+export enum BytesFactor {
+  Megabytes = 'M',
+  Gigabytes = 'G',
+  Terrabytes = 'T',
+}
+
+export enum DurationFactor {
+  Seconds = 's',
+  Minutes = 'm',
+  Hours = 'h',
 }
