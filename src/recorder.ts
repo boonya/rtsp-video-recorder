@@ -1,9 +1,8 @@
 import fse from 'fs-extra';
 import pathApi from 'path';
-import {EventEmitter} from 'events';
+import { EventEmitter } from 'events';
 import { ChildProcessWithoutNullStreams as ChildProcess, spawn } from 'child_process';
 import { createHash } from 'crypto';
-import du from 'du';
 import strftime from 'strftime';
 
 import { IRecorder, Options, Events, EventCallback, SegmentStartedArg } from './types';
@@ -12,6 +11,7 @@ import Validators from './validators';
 import Helpers from './helpers';
 
 const FILE_EXTENSION = 'mp4';
+const APPROXIMATION_PERCENTAGE = 1;
 
 class Recorder implements IRecorder {
   private title?: string;
@@ -175,7 +175,7 @@ class Recorder implements IRecorder {
 
       await Helpers.clearSpace(this.path);
 
-      const used = await du(this.path, {disk: true});
+      const used = await Helpers.getOccupiedSpace(this.path);
       const threshold = this.dirSizeThreshold;
 
       this.eventEmitter.emit(Events.SPACE_WIPED, {
@@ -213,10 +213,10 @@ class Recorder implements IRecorder {
       return;
     }
 
-    const used = await du(this.path);
+    const used = await Helpers.getOccupiedSpace(this.path);
     const threshold = this.dirSizeThreshold;
 
-    if (used < threshold) {
+    if (Math.ceil(used + used * APPROXIMATION_PERCENTAGE / 100) < threshold) {
       return;
     }
 

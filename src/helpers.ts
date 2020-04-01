@@ -1,6 +1,7 @@
 import fs from 'fs';
 import pathApi from 'path';
 import fse from 'fs-extra';
+import du from 'du';
 
 import { BytesFactor, DurationFactor, DirSizeThresholdOption, SegmentTimeOption } from './types';
 
@@ -113,9 +114,17 @@ export const getDuration = (operand: number, factor: DurationFactor) => {
   }
 };
 
+/**
+ * @returns amount of bytes
+ */
+export const getOccupiedSpace = async (path: string): Promise<number> => {
+  return du(path, { disk: true });
+};
+
 export default {
   transformDirSizeThreshold,
   transformSegmentTime,
   directoryExists,
   clearSpace,
+  getOccupiedSpace,
 };
