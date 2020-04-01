@@ -8,6 +8,12 @@ export type Options = {
   filenamePattern?: string;
   segmentTime?: SegmentTimeOption;
   dirSizeThreshold?: DirSizeThresholdOption;
+  autoClear?: boolean;
+};
+
+export type SegmentStartedArg = {
+  current: string;
+  previous?: string;
 };
 
 export type EventCallback = (...args: any) => void;
@@ -17,7 +23,9 @@ export enum Events {
   STOPPED = 'stopped',
   ERROR = 'error',
   PROGRESS = 'progress',
+  SEGMENT_STARTED = 'segment_started',
   FILE_CREATED = 'file_created',
+  STOP = 'stop',
   DIRECTORY_CREATED = 'directory_created',
   SPACE_WIPED = 'space_wiped',
   SPACE_FULL = 'space_full',

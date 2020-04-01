@@ -1,9 +1,8 @@
 import fs from 'fs';
 import pathApi from 'path';
+import fse from 'fs-extra';
 
 import { BytesFactor, DurationFactor, DirSizeThresholdOption, SegmentTimeOption } from './types';
-
-const FILE_EXTENSION = 'mp4';
 
 const SEGMENT_TIME_PATTERN = /^(\d+)(s|m|h)?$/;
 
@@ -21,15 +20,7 @@ export const transformSegmentTime = (value: SegmentTimeOption) => {
   return getDuration(operand, factor);
 };
 
-export const getDirPath = (path: string, directoryPattern: string) => {
-  return `${pathApi.resolve(path)}/${directoryPattern}`;
-};
-
-export const getFilePath = (directoryPath: string, filenamePattern: string) => {
-  return `${directoryPath}/${filenamePattern}.${FILE_EXTENSION}`;
-};
-
-export const isDirectoryExist = (path: string) => {
+export const directoryExists = (path: string) => {
   let stats;
   try {
     stats = fs.lstatSync(path);
@@ -42,8 +33,26 @@ export const isDirectoryExist = (path: string) => {
   return true;
 };
 
-export const createDirectory = (path: string) => {
-  return fs.mkdirSync(path, 0o777);
+export const clearSpace = async (root: string) => {
+  const listing = fs.readdirSync(root).map((i) => pathApi.join(root, i));
+  if (listing.length < 2) {
+    throw new Error('Can\'t remove current directory.');
+  }
+  const path = getOldestObject(listing);
+  await fse.remove(path);
+};
+
+export const getOldestObject = (listing: string[]) => {
+  const result = listing.map((path) => {
+    return {
+      path,
+      created: fs.lstatSync(path).birthtimeMs,
+    };
+  }).reduce(
+    (acc, cur) => acc.created > cur.created ? cur : acc,
+    { path: '', created: Infinity },
+  );
+  return result.path;
 };
 
 export const matchDirSizeThreshold = (value: string): [number, BytesFactor] => {
@@ -107,8 +116,6 @@ export const getDuration = (operand: number, factor: DurationFactor) => {
 export default {
   transformDirSizeThreshold,
   transformSegmentTime,
-  getDirPath,
-  getFilePath,
-  isDirectoryExist,
-  createDirectory,
+  directoryExists,
+  clearSpace,
 };

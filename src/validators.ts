@@ -9,7 +9,7 @@ import Helpers from './helpers';
 export const verifyPath = (value: string) => {
   try {
     const path = pathApi.resolve(value);
-    if (!Helpers.isDirectoryExist(path)) {
+    if (!Helpers.directoryExists(path)) {
       return `${path} is not a directory`;
     }
   } catch (err) {

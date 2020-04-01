@@ -1,8 +1,6 @@
 import { BytesFactor, DurationFactor } from '../src/types';
 import {
-  isDirectoryExist,
-  getDirPath,
-  getFilePath,
+  directoryExists,
   transformDirSizeThreshold,
   transformSegmentTime,
   getBytesSize,
@@ -12,26 +10,16 @@ import {
 } from '../src/helpers';
 
 describe('Helpers', () => {
-  describe('isDirectoryExist', () => {
+  describe('directoryExists', () => {
     test('Valid value', () => {
-      expect(isDirectoryExist(__dirname)).toBeTruthy();
-      expect(isDirectoryExist('./invalid-directory')).toBeFalsy();
+      expect(directoryExists(__dirname)).toBeTruthy();
+      expect(directoryExists('./invalid-directory')).toBeFalsy();
     });
 
     test('Invalid values', () => {
-      expect(() => isDirectoryExist(__filename))
+      expect(() => directoryExists(__filename))
         .toThrowError(`${__filename} exists but it is not a directory.`);
     });
-  });
-
-  describe('getDirPath', () => {
-    expect(getDirPath('./test', 'dir-path')).toEqual(`${__dirname}/dir-path`);
-    expect(getDirPath(__dirname, 'dir-path')).toEqual(`${__dirname}/dir-path`);
-  });
-
-  describe('getFilePath', () => {
-    expect(getFilePath('.', 'filename')).toEqual('./filename.mp4');
-    expect(getFilePath(__dirname, 'filename')).toEqual(`${__dirname}/filename.mp4`);
   });
 
   test('transformDirSizeThreshold', () => {
