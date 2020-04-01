@@ -1,6 +1,6 @@
 import fse from 'fs-extra';
 import pathApi from 'path';
-import EventEmitter from 'events';
+import {EventEmitter} from 'events';
 import { ChildProcessWithoutNullStreams as ChildProcess, spawn } from 'child_process';
 import { createHash } from 'crypto';
 import du from 'du';
