@@ -2,7 +2,8 @@
 
 ## Provides an API to record rtsp video stream as a mp4 files splitted out on segments
 
-[![build status](https://img.shields.io/travis/com/boonya/rtsp-video-recorder?label=build%20status)](https://travis-ci.com/boonya/rtsp-video-recorder)
+![On push workflow](https://github.com/boonya/rtsp-video-recorder/workflows/On%20push%20workflow/badge.svg)
+![Publish](https://github.com/boonya/rtsp-video-recorder/workflows/Publish/badge.svg)
 [![npm](https://img.shields.io/npm/v/rtsp-video-recorder)](https://www.npmjs.com/package/rtsp-video-recorder)
 [![maintainability](https://img.shields.io/codeclimate/maintainability-percentage/boonya/rtsp-video-recorder?label=maintainability)](https://codeclimate.com/github/boonya/rtsp-video-recorder/maintainability)
 ![bundle size](https://img.shields.io/bundlephobia/min/rtsp-video-recorder)
