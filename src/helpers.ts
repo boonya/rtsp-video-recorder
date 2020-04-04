@@ -2,6 +2,7 @@ import fs from 'fs';
 import pathApi from 'path';
 import fse from 'fs-extra';
 import du from 'du';
+import { createHash } from 'crypto';
 
 import { BytesFactor, DurationFactor, DirSizeThresholdOption, SegmentTimeOption } from './types';
 
@@ -99,6 +100,19 @@ export const matchSegmentTime = (value: string): [number, DurationFactor] => {
   return [operand, factor];
 };
 
+export const moveFile = async (previous: string, target: string) => {
+  return fse.move(previous, target);
+};
+
+export const getHash = (value: string) => {
+  return createHash('md5').update(value).digest('hex');
+};
+
+export const parseSegmentDate = (path: string) => {
+  const [year, month, day, hour, minute, second] = pathApi.basename(path).split('.', 6).map(Number);
+  return new Date(year, month - 1, day, hour, minute, second);
+};
+
 /**
  * @returns seconds
  */
@@ -127,4 +141,7 @@ export default {
   directoryExists,
   clearSpace,
   getOccupiedSpace,
+  moveFile,
+  getHash,
+  parseSegmentDate,
 };

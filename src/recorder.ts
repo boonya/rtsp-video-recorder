@@ -2,7 +2,6 @@ import fse from 'fs-extra';
 import pathApi from 'path';
 import { EventEmitter } from 'events';
 import { ChildProcessWithoutNullStreams as ChildProcess, spawn } from 'child_process';
-import { createHash } from 'crypto';
 import strftime from 'strftime';
 
 import { IRecorder, Options, Events, EventCallback, SegmentStartedArg } from './types';
@@ -53,7 +52,7 @@ class Recorder implements IRecorder {
     this.autoClear = options.autoClear || false;
 
     this.eventEmitter = new EventEmitter();
-    this.uriHash = createHash('md5').update(this.uri).digest('hex');
+    this.uriHash = Helpers.getHash(this.uri);
   }
 
   public start = () => {
@@ -249,8 +248,7 @@ class Recorder implements IRecorder {
   }
 
   private parseSegmentPath = (path: string) => {
-    const [year, month, day, hour, minute, second] = pathApi.basename(path).split('.', 6).map(Number);
-    const date = new Date(year, month - 1, day, hour, minute, second);
+    const date = Helpers.parseSegmentDate(path);
     const dirname = strftime(this.directoryPattern, date);
     const filename = `${strftime(this.filenamePattern, date)}.${FILE_EXTENSION}`;
     return {
@@ -270,7 +268,7 @@ class Recorder implements IRecorder {
 
   private moveSegment = async (previous: string, dirpath: string, dirname: string, filename: string) => {
     const target = `${dirpath}/${filename}`;
-    await fse.move(previous, target);
+    await Helpers.moveFile(previous, target);
 
     this.eventEmitter.emit(Events.FILE_CREATED, {
       filepath: target,

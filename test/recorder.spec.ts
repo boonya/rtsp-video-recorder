@@ -1,5 +1,5 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
-import EventEmitter from 'events';
+import { EventEmitter } from 'events';
 
 import Recorder, { RecorderError, RecorderEvents, RecorderValidationError } from '../src/recorder';
 import Validators from '../src/validators';
@@ -11,7 +11,7 @@ jest.mock('../src/helpers');
 
 type OnSpawnType = (...args: any[]) => void;
 
-type OnKillType = (...args: any[]) => void;
+type OnKillType = (...args: any[]) => boolean;
 
 type MockSpawnProcessOptions = {
   onSpawn?: OnSpawnType,
@@ -20,7 +20,7 @@ type MockSpawnProcessOptions = {
 
 const mockSpawnProcess = (options: MockSpawnProcessOptions = {}) => {
   const onSpawn = options.onSpawn ? options.onSpawn : () => null;
-  const onKill = options.onKill ? options.onKill : () => null;
+  const onKill = options.onKill ? options.onKill : () => true;
 
   // @ts-ignore
   const proc: ChildProcessWithoutNullStreams = new EventEmitter();
@@ -52,19 +52,9 @@ const mockTransformDirSizeThreshold = () => {
   Helpers.transformDirSizeThreshold.mockImplementation((v: number) => v);
 };
 
-const mockGetDirPath = (result: string) => {
+const mockGetHash = () => {
   // @ts-ignore
-  Helpers.getDirPath.mockReturnValue(result);
-};
-
-const mockGetFilePath = (result: string) => {
-  // @ts-ignore
-  Helpers.getFilePath.mockReturnValue(result);
-};
-
-const mockIsDirectoryExist = (result: boolean) => {
-  // @ts-ignore
-  Helpers.isDirectoryExist.mockReturnValue(result);
+  Helpers.getHash.mockReturnValue('md5-hash-string');
 };
 
 describe('Recorder', () => {
@@ -73,6 +63,7 @@ describe('Recorder', () => {
     mockSpawnProcess();
     mockTransformSegmentTime();
     mockTransformDirSizeThreshold();
+    mockGetHash();
   });
 
   afterEach(() => {
@@ -121,45 +112,23 @@ describe('Recorder', () => {
         .start();
     });
 
-    test('FILE_CREATED on recorder instantiated with no options defined', (done) => {
+    test('SEGMENT_STARTED', (done) => {
       function handler(data: object) {
         expect(data).toStrictEqual({
-          filepath: 'path/2020.01.03/01.37.53.mp4',
-          dirpath: 'path/2020.01.03',
-          dirname: '2020.01.03',
-          filename: '01.37.53.mp4',
+          current: 'path/2020.01.03.01.37.53.md5-hash-string.mp4',
+          previous: undefined,
         });
         done();
       }
 
       const fakeProcess = mockSpawnProcess();
-      mockGetDirPath('path/2020.01.03');
-      mockIsDirectoryExist(true);
 
       new Recorder('uri', 'path')
-        .on(RecorderEvents.FILE_CREATED, handler)
+        .on(RecorderEvents.SEGMENT_STARTED, handler)
         .start();
 
-      const message = `[segment @ 0x000000\] Opening 'path/2020.01.03/01.37.53.mp4' for writing`;
+      const message = `Opening 'path/2020.01.03.01.37.53.md5-hash-string.mp4' for writing`;
       const buffer = Buffer.from(message, 'utf8');
-      fakeProcess.stderr.emit('data', buffer);
-    });
-
-    test('DIRECTORY_CREATED on recorder instantiated with no options defined', (done) => {
-      function handler(data: object) {
-        expect(data).toStrictEqual({ path: 'path/2020.01.03' });
-        done();
-      }
-
-      const fakeProcess = mockSpawnProcess();
-      mockGetDirPath('path/2020.01.03');
-      mockIsDirectoryExist(false);
-
-      new Recorder('uri', 'path')
-        .on(RecorderEvents.DIRECTORY_CREATED, handler)
-        .start();
-
-      const buffer = Buffer.from('any message', 'utf8');
       fakeProcess.stderr.emit('data', buffer);
     });
 
@@ -175,7 +144,7 @@ describe('Recorder', () => {
         .on(RecorderEvents.ERROR, handler)
         .start();
 
-      const message = `[segment @ 0x000000] Failed to open segment 'path/2020.01.03/01.37.53.mp4'`;
+      const message = `Failed to open segment 'path/2020.01.03/01.37.53.mp4'`;
       const buffer = Buffer.from(message, 'utf8');
       fakeProcess.stderr.emit('data', buffer);
     });
@@ -241,7 +210,6 @@ describe('Recorder', () => {
           'tcp',
           '-vsync',
           '1',
-          // ...(this.title ? ['-metadata', `title=${this.title}`] : []),
           '-f',
           'segment',
           '-segment_time',
@@ -250,14 +218,13 @@ describe('Recorder', () => {
           '1',
           '-strftime',
           '1',
-          'any-file-path',
+          'path/%Y.%m.%d.%H.%M.%S.md5-hash-string.mp4',
         ]);
         expect(options).toEqual({ detached: false });
         done();
       }
 
       mockSpawnProcess({ onSpawn });
-      mockGetFilePath('any-file-path');
 
       new Recorder('uri', 'path').start();
     });
@@ -285,14 +252,13 @@ describe('Recorder', () => {
           '1',
           '-strftime',
           '1',
-          'any-file-path',
+          'path/%Y.%m.%d.%H.%M.%S.md5-hash-string.mp4',
         ]);
         expect(options).toEqual({ detached: false });
         done();
       }
 
       mockSpawnProcess({ onSpawn });
-      mockGetFilePath('any-file-path');
 
       new Recorder('any-uri', 'path', { title: 'Any video title', segmentTime: 1000 }).start();
     });
