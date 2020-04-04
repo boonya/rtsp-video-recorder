@@ -1,17 +1,20 @@
-import fs from 'fs';
+import fse from 'fs-extra';
 import pathApi from 'path';
-import EventEmitter from 'events';
+import { EventEmitter } from 'events';
 import { ChildProcessWithoutNullStreams as ChildProcess, spawn } from 'child_process';
-
 import strftime from 'strftime';
 
+import { IRecorder, Options, Events, EventCallback, SegmentStartedArg } from './types';
 import { RecorderError, RecorderValidationError } from './error';
-import { Options, Events, EventCallback } from './types';
+import Validators from './validators';
+import Helpers from './helpers';
 
-class Recorder {
-  private readonly EXT = 'mp4';
+const FILE_EXTENSION = 'mp4';
+const APPROXIMATION_PERCENTAGE = 1;
 
+class Recorder implements IRecorder {
   private title?: string;
+  private ffmpegBinary: string = 'ffmpeg';
 
   /**
    * @READ: http://www.cplusplus.com/reference/ctime/strftime/
@@ -20,25 +23,36 @@ class Recorder {
   private filenamePattern: string = '%H.%M.%S';
 
   private segmentTime: number = 600; // 10 minutes or 600 seconds
-  private dirSizeThreshold: number | null;
+
+  private dirSizeThreshold: number | null; // bytes
+
+  private autoClear: boolean;
 
   private process: ChildProcess | null = null;
   private eventEmitter: EventEmitter;
+  private uriHash?: string;
+  private previousSegment?: string;
 
   constructor(
     private uri: string,
     private path: string,
     options: Options = {},
   ) {
+    const errors = Validators.verifyAllOptions(path, options);
+    if (errors.length) {
+      throw new RecorderValidationError('Options invalid', errors);
+    }
+
     this.title = options.title;
+    this.ffmpegBinary = options.ffmpegBinary || this.ffmpegBinary;
     this.directoryPattern = options.directoryPattern || this.directoryPattern;
     this.filenamePattern = options.filenamePattern || this.filenamePattern;
-    this.segmentTime = options.segmentTime || this.segmentTime;
-    this.dirSizeThreshold = options.dirSizeThreshold || null;
-
-    this.verifyOptions();
+    this.segmentTime = options.segmentTime ? Helpers.transformSegmentTime(options.segmentTime) : this.segmentTime;
+    this.dirSizeThreshold = options.dirSizeThreshold ? Helpers.transformDirSizeThreshold(options.dirSizeThreshold) : null;
+    this.autoClear = options.autoClear || false;
 
     this.eventEmitter = new EventEmitter();
+    this.uriHash = Helpers.getHash(this.uri);
   }
 
   public start = () => {
@@ -46,16 +60,7 @@ class Recorder {
       this.startRecord();
     } catch (err) {
       this.eventEmitter.emit(Events.ERROR, err);
-      return this;
     }
-    this.eventEmitter.emit(Events.STARTED, {
-      dateFormat: this.directoryPattern,
-      timeFormat: this.filenamePattern,
-      segmentTime: this.segmentTime,
-      dirSizeThreshold: this.dirSizeThreshold,
-      path: this.path,
-      uri: this.uri,
-    });
     return this;
   }
 
@@ -65,7 +70,6 @@ class Recorder {
     } catch (err) {
       this.eventEmitter.emit(Events.ERROR, err);
     }
-    this.eventEmitter.emit(Events.STOPPED, 'Programmatically stopped');
     return this;
   }
 
@@ -74,65 +78,39 @@ class Recorder {
     return this;
   }
 
-  private verifyOptions = () => {
-    const errors: string[] = [];
-
-    /** @todo: Validate dateFormat & timeFormat to be a valid cpp strftime format strings */
-
-    if (this.segmentTime < 5) {
-      errors.push('There is no sence to set duration value to less that 5 seconds');
-    }
-
-    if (this.dirSizeThreshold && this.dirSizeThreshold < 200) {
-      errors.push('There is no sence to set dirSizeThreshold value to less that 200 MB');
-    }
-
-    try {
-      const path = this.getBaseDirPath();
-      if (!this.isDirectoryExist(path)) {
-        errors.push(`${path} is not a directory`);
-      }
-    } catch (err) {
-      errors.push(err.message);
-    }
-
-    if (errors.length) {
-      throw new RecorderValidationError('Options are invalid', errors);
-    }
-  }
-
-  private getBaseDirPath = () => pathApi.resolve(this.path);
-
-  private getDirPath = () => {
-    return `${this.getBaseDirPath()}/${this.directoryPattern}`;
-  }
-
-  private getFilePath = () => {
-    return `${this.getDirPath()}/${this.filenamePattern}.${this.EXT}`;
-  }
-
   private startRecord = () => {
-    // Check for space availability (if no space available then emit FULL event and clear directory)
-    // console.log('du -s ->>>', this.recordsPath());
-    // const process = spawn(`du -s ${this.recordsPath()}`);
-    // console.log('ls', {process});
-
     if (this.process) {
-      throw new RecorderError('Process already spawned');
+      throw new RecorderError('Process already spawned.');
     }
 
-    this.ffmpegRun();
+    this.eventEmitter.on(Events.SEGMENT_STARTED, this.onSegmentStarted);
+    this.eventEmitter.on(Events.SPACE_FULL, this.onSpaceFull);
+    this.eventEmitter.on(Events.PROGRESS, this.onProgress);
+    this.eventEmitter.on(Events.STOP, this.stopRecord);
+    this.eventEmitter.on(Events.STOPPED, this.onStopped);
+
+    this.process = this.spawnFFMPEG();
+
+    this.eventEmitter.emit(Events.STARTED, {
+      dateFormat: this.directoryPattern,
+      timeFormat: this.filenamePattern,
+      segmentTime: this.segmentTime,
+      dirSizeThreshold: this.dirSizeThreshold,
+      path: this.path,
+      uri: this.uri,
+    });
   }
 
   private stopRecord = () => {
     if (!this.process) {
-      throw new RecorderError('No process spawned');
+      throw new RecorderError('No process spawned.');
     }
     this.process.kill();
+    this.eventEmitter.emit(Events.STOPPED, 'Programmatically stopped');
   }
 
-  private ffmpegRun = () => {
-    this.process = spawn('ffmpeg',
+  private spawnFFMPEG = () => {
+    const process = spawn(this.ffmpegBinary,
       [
         '-i',
         this.uri,
@@ -152,79 +130,157 @@ class Recorder {
         '1',
         '-strftime',
         '1',
-        this.getFilePath(),
+        pathApi.join(this.path, `%Y.%m.%d.%H.%M.%S.${this.uriHash}.${FILE_EXTENSION}`),
       ],
       { detached: false },
     );
 
-    this.process.stderr.on('data', (buffer: Buffer) => {
-      try {
-        this.ensureDailyDirectoryExists();
-      } catch (err) {
-        this.eventEmitter.emit(Events.ERROR, err);
-        if (this.process) {
-          this.process.kill();
-        }
-        return;
-      }
-
+    process.stderr.on('data', (buffer: Buffer) => {
       this.eventEmitter.emit(Events.PROGRESS, buffer);
-      this.logFileCreation(buffer);
     });
 
-    this.process.on('error', (...args) => {
-      this.eventEmitter.emit(Events.ERROR, ...args);
+    process.on('error', (error: string) => {
+      this.eventEmitter.emit(Events.ERROR, new RecorderError(error));
     });
 
-    this.process.on('close', (code) => {
+    process.on('close', (code: string) => {
       this.eventEmitter.emit(Events.STOPPED, `FFMPEG process exited with code ${code}`);
     });
 
-    return this.process;
+    return process;
   }
 
-  private logFileCreation(buffer: Buffer) {
-    const openingPattern = new RegExp(`\[segment @ 0x[0-9a-f]+\] Opening '(.+)' for writing`);
-    const failedPattern = new RegExp(`\[segment @ 0x[0-9a-f]+\] Failed to open segment '(.+)'`);
+  private onSegmentStarted = async ({ previous }: SegmentStartedArg) => {
+    if (!previous) {
+      return;
+    }
 
+    try {
+      const { dirpath, dirname, filename } = this.parseSegmentPath(previous);
+      await this.ensureDirectory(dirpath, dirname);
+      await this.moveSegment(previous, dirpath, dirname, filename);
+    } catch (err) {
+      this.eventEmitter.emit(Events.ERROR, err);
+    }
+  }
+
+  private onSpaceFull = async () => {
+    try {
+      if (!this.autoClear) {
+        this.eventEmitter.emit(Events.ERROR, new RecorderError('Space is full but autoClear is not allowed.'));
+        this.eventEmitter.emit(Events.STOP);
+        return;
+      }
+
+      await Helpers.clearSpace(this.path);
+
+      const used = await Helpers.getOccupiedSpace(this.path);
+      const threshold = this.dirSizeThreshold;
+
+      this.eventEmitter.emit(Events.SPACE_WIPED, {
+        path: this.path,
+        used,
+        threshold,
+      });
+    } catch (err) {
+      this.eventEmitter.emit(Events.ERROR, err);
+      this.eventEmitter.emit(Events.STOP);
+    }
+  }
+
+  private onProgress = async (buffer: Buffer) => {
+    try {
+      await this.ensureSpaceEnough();
+      this.handleProgressBuffer(buffer);
+    } catch (err) {
+      this.eventEmitter.emit(Events.ERROR, err);
+      this.eventEmitter.emit(Events.STOP);
+    }
+  }
+
+  private onStopped = async () => {
+    if (!this.previousSegment) {
+      return;
+    }
+    const { dirpath, dirname, filename } = this.parseSegmentPath(this.previousSegment);
+    await this.moveSegment(this.previousSegment, dirpath, dirname, filename);
+    this.previousSegment = undefined;
+  }
+
+  private ensureSpaceEnough = async () => {
+    if (!this.dirSizeThreshold) {
+      return;
+    }
+
+    const used = await Helpers.getOccupiedSpace(this.path);
+    const threshold = this.dirSizeThreshold;
+
+    if (Math.ceil(used + used * APPROXIMATION_PERCENTAGE / 100) < threshold) {
+      return;
+    }
+
+    this.eventEmitter.emit(Events.SPACE_FULL, {
+      path: this.path,
+      used,
+      threshold,
+    });
+  }
+
+  private handleProgressBuffer(buffer: Buffer) {
     const message = buffer.toString();
 
+    const openingPattern = new RegExp(`Opening '(.+)' for writing`);
     const openingMatch = message.match(openingPattern);
+
+    const failedPattern = new RegExp(`Failed to open segment '(.+)'`);
     const failedMatch = message.match(failedPattern);
 
     if (failedMatch) {
       this.eventEmitter.emit(Events.ERROR, new RecorderError(`Failed to open file '${failedMatch[1]}'.`));
+      this.eventEmitter.emit(Events.STOP);
     }
 
     if (openingMatch) {
-      const filepath = openingMatch[1];
-      const dirpath = pathApi.dirname(filepath);
-      const dirname = pathApi.basename(dirpath);
-      const filename = pathApi.basename(filepath);
-      this.eventEmitter.emit(Events.FILE_CREATED, { filepath, dirpath, dirname, filename });
+      const current = openingMatch[1];
+      this.eventEmitter.emit(Events.SEGMENT_STARTED, { current, previous: this.previousSegment });
+      this.previousSegment = current;
     }
   }
 
-  private isDirectoryExist = (path: string) => {
-    try {
-      const stats = fs.lstatSync(path);
-      return stats.isDirectory();
-    } catch {
-      return false;
-    }
+  private parseSegmentPath = (path: string) => {
+    const date = Helpers.parseSegmentDate(path);
+    const dirname = strftime(this.directoryPattern, date);
+    const filename = `${strftime(this.filenamePattern, date)}.${FILE_EXTENSION}`;
+    return {
+      dirpath: pathApi.join(this.path, dirname),
+      dirname,
+      filename,
+    };
   }
 
-  private ensureDailyDirectoryExists = () => {
-    const path = strftime(this.getDirPath());
-    if (this.isDirectoryExist(path)) {
+  private ensureDirectory = async (path: string, dirname: string) => {
+    if (Helpers.directoryExists(path)) {
       return;
     }
-    fs.mkdirSync(path, 0o777);
-    this.eventEmitter.emit(Events.DIRECTORY_CREATED, { path });
+    await fse.ensureDir(path, 0o777);
+    this.eventEmitter.emit(Events.DIRECTORY_CREATED, { path, name: dirname });
+  }
+
+  private moveSegment = async (previous: string, dirpath: string, dirname: string, filename: string) => {
+    const target = `${dirpath}/${filename}`;
+    await Helpers.moveFile(previous, target);
+
+    this.eventEmitter.emit(Events.FILE_CREATED, {
+      filepath: target,
+      dirpath,
+      dirname,
+      filename,
+    });
   }
 }
 
 export {
+  IRecorder,
   Recorder,
   Events as RecorderEvents,
   RecorderError,

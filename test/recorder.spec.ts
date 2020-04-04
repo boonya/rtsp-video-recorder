@@ -1,149 +1,292 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
-import { lstatSync } from 'fs';
-import EventEmitter from 'events';
-import Recorder, { RecorderValidationError, RecorderError, RecorderEvents } from '../src/recorder';
+import { EventEmitter } from 'events';
+
+import Recorder, { RecorderError, RecorderEvents, RecorderValidationError } from '../src/recorder';
+import Validators from '../src/validators';
+import Helpers from '../src/helpers';
 
 jest.mock('child_process');
-jest.mock('fs');
+jest.mock('../src/validators');
+jest.mock('../src/helpers');
 
-let fakeProcess: ChildProcessWithoutNullStreams;
-// @ts-ignore
-spawn.mockImplementation((...args: any[]) => {
-  fakeProcess = {
-    // @ts-ignore
-    stderr: new EventEmitter(),
-    // @ts-ignore
-    on: () => null,
-    kill: () => null,
-  };
-  return fakeProcess;
-});
+type OnSpawnType = (...args: any[]) => void;
 
-// @ts-ignore
-lstatSync.mockImplementation((path: string) => {
-  return { isDirectory: () => true };
-});
+type OnKillType = (...args: any[]) => boolean;
 
-describe('Testing errors and validation', () => {
-  test('Segment time option less than 5 seconds', () => {
-    expect(() => new Recorder('uri', 'path', { segmentTime: 4 })).toThrow(RecorderValidationError);
+type MockSpawnProcessOptions = {
+  onSpawn?: OnSpawnType,
+  onKill?: OnKillType,
+};
+
+const mockSpawnProcess = (options: MockSpawnProcessOptions = {}) => {
+  const onSpawn = options.onSpawn ? options.onSpawn : () => null;
+  const onKill = options.onKill ? options.onKill : () => true;
+
+  // @ts-ignore
+  const proc: ChildProcessWithoutNullStreams = new EventEmitter();
+  // @ts-ignore
+  proc.stderr = new EventEmitter();
+  proc.kill = onKill;
+
+  // @ts-ignore
+  spawn.mockImplementation((...args: any[]) => {
+    onSpawn(...args);
+    return proc;
   });
 
-  test('dirSizeThreshold option less than 200 but not equal to 0', () => {
-    expect(() => new Recorder('uri', 'path', { dirSizeThreshold: 199 })).toThrow(RecorderValidationError);
-  });
-});
+  return proc;
+};
 
-describe('Testing what public methods return', () => {
-  test('Method .start() should return this instance', () => {
-    expect(new Recorder('uri', 'path').start()).toBeInstanceOf(Recorder);
-  });
+const mockValidators = (result: string[]) => {
+  // @ts-ignore
+  Validators.verifyAllOptions.mockReturnValue(result);
+};
 
-  test('Method .stop() should return this instance', () => {
-    expect(new Recorder('uri', 'path').start().stop()).toBeInstanceOf(Recorder);
-  });
+const mockTransformSegmentTime = () => {
+  // @ts-ignore
+  Helpers.transformSegmentTime.mockImplementation((v: number) => v);
+};
 
-  test('Method .on() should return this instance', () => {
-    expect(new Recorder('uri', 'path').on(RecorderEvents.STARTED, () => null)).toBeInstanceOf(Recorder);
-  });
-});
+const mockTransformDirSizeThreshold = () => {
+  // @ts-ignore
+  Helpers.transformDirSizeThreshold.mockImplementation((v: number) => v);
+};
 
-describe('Testing events', () => {
-  test('Recorder STARTED with no additional options defined', (done) => {
-    function onStart(data: object) {
-      expect(data).toStrictEqual({
-        dateFormat: '%Y.%m.%d',
-        dirSizeThreshold: null,
-        segmentTime: 600,
-        timeFormat: '%H.%M.%S',
-        path: 'path',
-        uri: 'uri',
-      });
-      done();
-    }
+const mockGetHash = () => {
+  // @ts-ignore
+  Helpers.getHash.mockReturnValue('md5-hash-string');
+};
 
-    new Recorder('uri', 'path')
-      .on(RecorderEvents.STARTED, onStart)
-      .start();
+describe('Recorder', () => {
+  beforeEach(() => {
+    mockValidators([]);
+    mockSpawnProcess();
+    mockTransformSegmentTime();
+    mockTransformDirSizeThreshold();
+    mockGetHash();
   });
 
-  test('Recorder STARTED with options defined', (done) => {
-    function onStart(data: object) {
-      expect(data).toStrictEqual({
-        dateFormat: '%Y %B %d',
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  describe('Events', () => {
+    test('Recorder STARTED with no additional options defined', (done) => {
+      function handler(data: object) {
+        expect(data).toStrictEqual({
+          dateFormat: '%Y.%m.%d',
+          dirSizeThreshold: null,
+          segmentTime: 600,
+          timeFormat: '%H.%M.%S',
+          path: 'path',
+          uri: 'uri',
+        });
+        done();
+      }
+
+      new Recorder('uri', 'path')
+        .on(RecorderEvents.STARTED, handler)
+        .start();
+    });
+
+    test('Recorder STARTED with options defined', (done) => {
+      function handler(data: object) {
+        expect(data).toStrictEqual({
+          uri: 'uri',
+          path: 'path',
+          dateFormat: '%Y %B %d',
+          timeFormat: '%I.%M.%S%p',
+          dirSizeThreshold: 500,
+          segmentTime: 3600,
+        });
+        done();
+      }
+
+      new Recorder('uri', 'path', {
+        directoryPattern: '%Y %B %d',
+        filenamePattern: '%I.%M.%S%p',
         dirSizeThreshold: 500,
         segmentTime: 3600,
-        timeFormat: '%I.%M.%S%p',
-        path: 'path',
-        uri: 'uri',
-      });
-      done();
-    }
+      })
+        .on(RecorderEvents.STARTED, handler)
+        .start();
+    });
 
-    new Recorder('uri', 'path', {
-      directoryPattern: '%Y %B %d',
-      dirSizeThreshold: 500,
-      segmentTime: 3600,
-      filenamePattern: '%I.%M.%S%p',
-    })
-      .on(RecorderEvents.STARTED, onStart)
-      .start();
+    test('SEGMENT_STARTED', (done) => {
+      function handler(data: object) {
+        expect(data).toStrictEqual({
+          current: 'path/2020.01.03.01.37.53.md5-hash-string.mp4',
+          previous: undefined,
+        });
+        done();
+      }
+
+      const fakeProcess = mockSpawnProcess();
+
+      new Recorder('uri', 'path')
+        .on(RecorderEvents.SEGMENT_STARTED, handler)
+        .start();
+
+      const message = `Opening 'path/2020.01.03.01.37.53.md5-hash-string.mp4' for writing`;
+      const buffer = Buffer.from(message, 'utf8');
+      fakeProcess.stderr.emit('data', buffer);
+    });
+
+    test('ERROR if can not create a file', (done) => {
+      function handler(data: any) {
+        expect(data).toEqual(new RecorderError(`Failed to open file 'path/2020.01.03/01.37.53.mp4'.`));
+        done();
+      }
+
+      const fakeProcess = mockSpawnProcess();
+
+      new Recorder('uri', 'path')
+        .on(RecorderEvents.ERROR, handler)
+        .start();
+
+      const message = `Failed to open segment 'path/2020.01.03/01.37.53.mp4'`;
+      const buffer = Buffer.from(message, 'utf8');
+      fakeProcess.stderr.emit('data', buffer);
+    });
+
+    test('STOPED', (done) => {
+      function handler(data: string) {
+        expect(data).toEqual('Programmatically stopped');
+        done();
+      }
+
+      new Recorder('uri', 'path')
+        .start()
+        .on(RecorderEvents.STOPPED, handler)
+        .stop();
+    });
   });
 
-  test('FILE_CREATED on recorder instantiated with no options defined', (done) => {
-    function onCreated(data: object) {
-      expect(data).toStrictEqual({
-        filepath: 'path/2020.01.03/01.37.53.mp4',
-        dirpath: 'path/2020.01.03',
-        dirname: '2020.01.03',
-        filename: '01.37.53.mp4',
-      });
-      done();
-    }
+  describe('Errors', () => {
+    test('Validation error', () => {
+      mockValidators(['any validation error']);
 
-    new Recorder('uri', 'path')
-      .on(RecorderEvents.FILE_CREATED, onCreated)
-      .start();
+      expect(() => new Recorder('uri', 'path'))
+        .toThrow(RecorderValidationError);
+    });
 
-    const message = `[segment @ 0x000000\] Opening 'path/2020.01.03/01.37.53.mp4' for writing`;
-    const buffer = Buffer.from(message, 'utf8');
-    fakeProcess.stderr.emit('data', buffer);
+    test('ERROR if stop on not started', (done) => {
+      function onError(err: RecorderError) {
+        expect(err).toBeInstanceOf(RecorderError);
+        expect(err.message).toEqual('No process spawned.');
+        done();
+      }
+
+      new Recorder('uri', 'path')
+        .on(RecorderEvents.ERROR, onError)
+        .stop();
+    });
+
+    test('ERROR if start on already started', (done) => {
+      function onError(err: RecorderError) {
+        expect(err).toBeInstanceOf(RecorderError);
+        expect(err.message).toEqual('Process already spawned.');
+        done();
+      }
+
+      new Recorder('uri', 'path')
+        .on(RecorderEvents.ERROR, onError)
+        .start()
+        .start();
+    });
   });
 
-  test('STOPED', (done) => {
-    function onStop(data: string) {
-      expect(data).toStrictEqual('Programmatically stopped');
-      done();
-    }
+  describe('Process', () => {
+    test('Spawn arguments with no additional options defined', (done) => {
+      function onSpawn(command: string, args: ReadonlyArray<string>, options: object) {
+        expect(command).toEqual('ffmpeg');
+        expect(args).toEqual([
+          '-i',
+          'uri',
+          '-an',
+          '-vcodec',
+          'copy',
+          '-rtsp_transport',
+          'tcp',
+          '-vsync',
+          '1',
+          '-f',
+          'segment',
+          '-segment_time',
+          '600',
+          '-reset_timestamps',
+          '1',
+          '-strftime',
+          '1',
+          'path/%Y.%m.%d.%H.%M.%S.md5-hash-string.mp4',
+        ]);
+        expect(options).toEqual({ detached: false });
+        done();
+      }
 
-    new Recorder('uri', 'path')
-      .start()
-      .on(RecorderEvents.STOPPED, onStop)
-      .stop();
-  });
+      mockSpawnProcess({ onSpawn });
 
-  test('ERROR if stop on not started', (done) => {
-    function onError(err: RecorderError) {
-      expect(err).toBeInstanceOf(RecorderError);
-      expect(err.message).toStrictEqual('No process spawned');
-      done();
-    }
+      new Recorder('uri', 'path').start();
+    });
 
-    new Recorder('uri', 'path')
-      .on(RecorderEvents.ERROR, onError)
-      .stop();
-  });
+    test('Spawn arguments with options defined', (done) => {
+      function onSpawn(command: string, args: ReadonlyArray<string>, options: object) {
+        expect(command).toEqual('ffmpeg');
+        expect(args).toEqual([
+          '-i',
+          'any-uri',
+          '-an',
+          '-vcodec',
+          'copy',
+          '-rtsp_transport',
+          'tcp',
+          '-vsync',
+          '1',
+          '-metadata',
+          'title=Any video title',
+          '-f',
+          'segment',
+          '-segment_time',
+          '1000',
+          '-reset_timestamps',
+          '1',
+          '-strftime',
+          '1',
+          'path/%Y.%m.%d.%H.%M.%S.md5-hash-string.mp4',
+        ]);
+        expect(options).toEqual({ detached: false });
+        done();
+      }
 
-  test('ERROR if start on already started', (done) => {
-    function onError(err: RecorderError) {
-      expect(err).toBeInstanceOf(RecorderError);
-      expect(err.message).toStrictEqual('Process already spawned');
-      done();
-    }
+      mockSpawnProcess({ onSpawn });
 
-    new Recorder('uri', 'path')
-      .on(RecorderEvents.ERROR, onError)
-      .start()
-      .start();
+      new Recorder('any-uri', 'path', { title: 'Any video title', segmentTime: 1000 }).start();
+    });
+
+    test('FFMPEG process exited with code X', (done) => {
+      function handler(data: any) {
+        expect(data).toBe('FFMPEG process exited with code X');
+        done();
+      }
+
+      const proc = mockSpawnProcess();
+
+      new Recorder('uri', 'path').on(RecorderEvents.STOPPED, handler).start();
+
+      proc.emit('close', 'X');
+    });
+
+    test('FFMPEG process emitted error', (done) => {
+      function handler(data: any) {
+        expect(data).toEqual(new RecorderError('Error Message'));
+        done();
+      }
+
+      const proc = mockSpawnProcess();
+
+      new Recorder('uri', 'path').on(RecorderEvents.ERROR, handler).start();
+
+      proc.emit('error', 'Error Message');
+    });
   });
 });
