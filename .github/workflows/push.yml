@@ -13,5 +13,5 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           pattern: "*.ts"
-      - name: Jest
+      - name: Test
         uses: stefanoeb/jest-action@1.0.3
