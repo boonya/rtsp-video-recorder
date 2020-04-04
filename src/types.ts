@@ -3,12 +3,12 @@ export type DirSizeThresholdOption = number | string;
 
 export type Options = {
   title?: string;
-  ffmpegBinary?: string;
   directoryPattern?: string;
   filenamePattern?: string;
   segmentTime?: SegmentTimeOption;
   dirSizeThreshold?: DirSizeThresholdOption;
   autoClear?: boolean;
+  ffmpegBinary?: string;
 };
 
 export type SegmentStartedArg = {

@@ -1,76 +1,28 @@
-import Recorder, { IRecorder, RecorderEvents } from './recorder';
-
-const handleEvents = (name: string, recorder: IRecorder) => recorder
-  .on(RecorderEvents.STARTED, (...args) => console.log(`${name} -> ${RecorderEvents.STARTED}: `, ...args))
-  .on(RecorderEvents.STOPPED, (...args) => console.log(`${name} -> ${RecorderEvents.STOPPED}: `, ...args))
-  .on(RecorderEvents.ERROR, (...args) => console.log(`${name} -> ${RecorderEvents.ERROR}: `, ...args))
-  .on(RecorderEvents.SEGMENT_STARTED, (...args) => console.log(`${name} -> ${RecorderEvents.SEGMENT_STARTED}: `, ...args))
-  .on(RecorderEvents.FILE_CREATED, (...args) => console.log(`${name} -> ${RecorderEvents.FILE_CREATED}: `, ...args))
-  .on(RecorderEvents.DIRECTORY_CREATED, (...args) => console.log(`${name} -> ${RecorderEvents.DIRECTORY_CREATED}: `, ...args))
-  .on(RecorderEvents.STOP, (...args) => console.log(`${name} -> ${RecorderEvents.STOP}: `, ...args))
-
-  // .on(RecorderEvents.PROGRESS, (buffer: Buffer) => console.log(`${name} -> ${RecorderEvents.PROGRESS}: `, buffer.toString()))
-
-  .on(RecorderEvents.SPACE_FULL, ({ used, threshold, ...rest }) => console.log(`${name} -> ${RecorderEvents.SPACE_FULL}: `, {
-    used,
-    threshold,
-    MB: {
-      used: used / 1024 / 1024,
-      threshold: threshold / 1024 / 1024,
-    },
-    GB: {
-      used: used / 1024 / 1024 / 1024,
-      threshold: threshold / 1024 / 1024 / 1024,
-    },
-    ...rest,
-  }))
-
-  .on(RecorderEvents.SPACE_WIPED, ({ used, threshold, ...rest }) => console.log(`${name} -> ${RecorderEvents.SPACE_WIPED}: `, {
-    used,
-    threshold,
-    MB: {
-      used: used / 1024 / 1024,
-      threshold: threshold / 1024 / 1024,
-    },
-    GB: {
-      used: used / 1024 / 1024 / 1024,
-      threshold: threshold / 1024 / 1024 / 1024,
-    },
-    ...rest,
-  }));
+import Recorder, { RecorderEvents } from './recorder';
 
 try {
-  const yardCamRecorder = new Recorder(
+  new Recorder(
     'rtsp://192.168.0.100:554/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp?real_stream',
     'dist/Recorder',
     {
-      title: 'Yard Camera',
+      title: 'Test Camera',
       segmentTime: '10m',
       directoryPattern: '%Y.%m.%d',
-      filenamePattern: '%H.%M.%S-yard',
+      filenamePattern: '%H.%M.%S-test-cam',
       dirSizeThreshold: '20G',
       autoClear: true,
     },
-  );
-
-  const tableCamRecorder = new Recorder(
-    'rtsp://192.168.0.101:554/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp?real_stream',
-    'dist/Recorder',
-    {
-      title: 'Table Camera',
-      segmentTime: '10m',
-      directoryPattern: '%Y.%m.%d',
-      filenamePattern: '%H.%M.%S-table',
-      dirSizeThreshold: '20G',
-      autoClear: true,
-    },
-  );
-
-  handleEvents('Yard Cam', yardCamRecorder);
-  handleEvents('Table Cam', tableCamRecorder);
-
-  yardCamRecorder.start();
-  tableCamRecorder.start();
+  ).on(RecorderEvents.STARTED, (...args) => console.log(`${RecorderEvents.STARTED}: `, ...args))
+    .on(RecorderEvents.STOPPED, (...args) => console.log(`${RecorderEvents.STOPPED}: `, ...args))
+    .on(RecorderEvents.ERROR, (...args) => console.log(`${RecorderEvents.ERROR}: `, ...args))
+    .on(RecorderEvents.SEGMENT_STARTED, (...args) => console.log(`${RecorderEvents.SEGMENT_STARTED}: `, ...args))
+    .on(RecorderEvents.FILE_CREATED, (...args) => console.log(`${RecorderEvents.FILE_CREATED}: `, ...args))
+    .on(RecorderEvents.DIRECTORY_CREATED, (...args) => console.log(`${RecorderEvents.DIRECTORY_CREATED}: `, ...args))
+    .on(RecorderEvents.STOP, (...args) => console.log(`${RecorderEvents.STOP}: `, ...args))
+    // .on(RecorderEvents.PROGRESS, (buffer: Buffer) => console.log(`${RecorderEvents.PROGRESS}: `, buffer.toString()))
+    .on(RecorderEvents.SPACE_FULL, (...args) => console.log(`${RecorderEvents.SPACE_FULL}: `, ...args))
+    .on(RecorderEvents.SPACE_WIPED, (...args) => console.log(`${RecorderEvents.SPACE_WIPED}: `, ...args))
+    .start();
 } catch (err) {
   console.error(err.message, { err });
 }

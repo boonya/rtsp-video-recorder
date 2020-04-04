@@ -25,7 +25,7 @@ If you prefer different package manager or work on different linux distro use ap
 Installation process of this lib as simple as it can be. Just run
 
 ```bash
-npm i rtsp-video-recorder
+npm i --save rtsp-video-recorder
 ```
 
 And after that you can use is as on example below
@@ -37,7 +37,6 @@ import Recorder, { RecorderEvents } from "rtsp-video-recorder";
 
 const recorder = new Recorder("rtsp://username:password@host/path", "/media/Recorder", {
   title: "Test Camera",
-  segmentTime: 60
 });
 
 // Start recording
@@ -55,12 +54,24 @@ recorder.on(RecorderEvents.ERROR, () => {
   /** Do what you need in case of recording error */
 });
 
+recorder.on(RecorderEvents.SEGMENT_STARTED, () => {
+  /** Do what you need in case of new segment started */
+});
+
 recorder.on(RecorderEvents.DIRECTORY_CREATED, () => {
-  /** Do what you need in case of new daily directory created */
+  /** Do what you need in case of new directory created */
 });
 
 recorder.on(RecorderEvents.FILE_CREATED, () => {
   /** Do what you need in case of new file created */
+});
+
+recorder.on(RecorderEvents.SPACE_FULL, () => {
+  /** Do what you need in case of space is full */
+});
+
+recorder.on(RecorderEvents.SPACE_WIPED, () => {
+  /** Do what you need in case of space wiped */
 });
 
 // Stop recording
@@ -94,9 +105,24 @@ _Accepts C++ strftime specifiers:_ http://www.cplusplus.com/reference/ctime/strf
 
 #### segmentTime
 
-Duration of one video file (seconds).
+Duration of one video file (in seconds).
 600 seconds or 10 minutes by default if not defined.
+It can be a number of seconds or string xs, xm or xh what means amount of seconds, minutes or hours respectively.
 
 #### title
 
-Title of video file
+Title of video file. Used as metadata of video file.
+
+#### dirSizeThreshold
+
+In case you have this option specified you will have ability to catch `SPACE_FULL` event whent threshold is reached. It can be a number of bytes or string xM, xG or xT what means amount of Megabytes, Gigabytes or Terrabytes respectively.
+
+#### autoClear
+
+This option is `false` bu default. So, if you reach a threshold your `Recorder` emits `SPACE_FULL` event and stops. But if you specify this option as `true` it will remove the oldest directory in case threshold reached out. Also it does emit `SPACE_WIPED` event in case of some directory removed.
+
+_NOTE that option does not make sence if `dirSizeThreshold` option is not specified._
+
+#### ffmpegBinary
+
+In case you need to specify a path to ffmpeg binary you can do it usin this argument.
