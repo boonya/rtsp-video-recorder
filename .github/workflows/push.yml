@@ -1,17 +1,13 @@
-name: On push workflow
+name: Lint and test
 on: [push]
 jobs:
-  job:
+  push:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
     steps:
       - uses: actions/checkout@v1
-      - name: Prepare
-        run: npm ci
-      - name: TS Lint
-        uses: mooyoul/tslint-actions@v1.1.1
+      - uses: actions/setup-node@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pattern: "*.ts"
-      - name: Test
-        uses: stefanoeb/jest-action@1.0.3
+          node-version: 12
+      - run: npm ci
+      - run: npm run lint:prod
+      - run: npm test
