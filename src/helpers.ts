@@ -1,7 +1,6 @@
-import fs from 'fs';
 import pathApi from 'path';
+import fs from 'fs';
 import fse from 'fs-extra';
-import du from 'du';
 import { createHash } from 'crypto';
 
 import { BytesFactor, DurationFactor, DirSizeThresholdOption, SegmentTimeOption } from './types';
@@ -23,7 +22,7 @@ export const transformSegmentTime = (value: SegmentTimeOption) => {
 };
 
 export const directoryExists = (path: string) => {
-  let stats;
+  let stats: fs.Stats;
   try {
     stats = fs.lstatSync(path);
   } catch (e) {
@@ -100,10 +99,6 @@ export const matchSegmentTime = (value: string): [number, DurationFactor] => {
   return [operand, factor];
 };
 
-export const moveFile = async (previous: string, target: string) => {
-  return fse.move(previous, target);
-};
-
 export const getHash = (value: string) => {
   return createHash('md5').update(value).digest('hex');
 };
@@ -126,22 +121,4 @@ export const getDuration = (operand: number, factor: DurationFactor) => {
     default:
       return operand;
   }
-};
-
-/**
- * @returns amount of bytes
- */
-export const getOccupiedSpace = async (path: string): Promise<number> => {
-  return du(path, { disk: true });
-};
-
-export default {
-  transformDirSizeThreshold,
-  transformSegmentTime,
-  directoryExists,
-  clearSpace,
-  getOccupiedSpace,
-  moveFile,
-  getHash,
-  parseSegmentDate,
 };

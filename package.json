@@ -13,12 +13,13 @@
     "npm": ">=6"
   },
   "scripts": {
-    "start": "npm run lint && npm run test && npm run build",
-    "dev": "./node_modules/.bin/tsc --watch",
-    "build": "./node_modules/.bin/tsc",
-    "test": "./node_modules/.bin/jest",
-    "lint": "./node_modules/.bin/tslint --project tsconfig.json --config tslint.json --format stylish",
-    "lint:prod": "./node_modules/.bin/tslint --project tsconfig.json --config tslint.prod.json --format stylish"
+    "start": "npm run lint && npm run test && npm run dev",
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "tslint --project tsconfig.json --config tslint.json --format stylish",
+    "lint:prod": "tslint --project tsconfig.json --config tslint.prod.json --format stylish"
   },
   "keywords": [
     "rtsp",
@@ -42,7 +43,7 @@
     "@types/strftime": "^0.9.2",
     "jest": "^25.2.4",
     "prettier": "^2.0.2",
-    "ts-jest": "^25.3.0",
+    "ts-jest": "^25.5.1",
     "tslint": "^6.1.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-config-standard": "^9.0.0",

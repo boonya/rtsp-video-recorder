@@ -1,20 +1,20 @@
 export type SegmentTimeOption = number | string;
 export type DirSizeThresholdOption = number | string;
 
-export type Options = {
-  title?: string;
-  directoryPattern?: string;
-  filenamePattern?: string;
-  segmentTime?: SegmentTimeOption;
-  dirSizeThreshold?: DirSizeThresholdOption;
-  autoClear?: boolean;
-  ffmpegBinary?: string;
-};
-
 export type SegmentStartedArg = {
   current: string;
   previous?: string;
 };
+
+export type Options = Partial<{
+  title: string;
+  directoryPattern: string;
+  filenamePattern: string;
+  segmentTime: SegmentTimeOption;
+  dirSizeThreshold: DirSizeThresholdOption;
+  autoClear: boolean;
+  ffmpegBinary: string;
+}>;
 
 export type EventCallback = (...args: any) => void;
 
