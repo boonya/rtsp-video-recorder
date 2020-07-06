@@ -189,6 +189,14 @@ recorder.start();
 recorder.stop();
 ```
 
+### If you need to know whether recording is in process or no
+
+You can execute `isRecording` methond on recorder instance which returns boolean value
+
+```ts
+recorder.isRecording();
+```
+
 ### It also supports [Fluent Interface](https://en.wikipedia.org/wiki/Fluent_interface#JavaScript)
 
 ```ts
