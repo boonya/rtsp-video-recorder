@@ -86,6 +86,8 @@ export default class Recorder implements IRecorder {
     return this;
   }
 
+  public isRecording = () => Boolean(this.process);
+
   private startRecord = () => {
     if (this.process) {
       throw new RecorderError('Process already spawned.');
@@ -118,6 +120,7 @@ export default class Recorder implements IRecorder {
       throw new RecorderError('No process spawned.');
     }
     this.process.kill();
+    this.process = null;
     this.eventEmitter.emit(Events.STOPPED, 0, 'Programmatically stopped.');
   }
 

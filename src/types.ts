@@ -35,6 +35,7 @@ export interface IRecorder {
   start: () => this;
   stop: () => this;
   on: (event: Events, callback: EventCallback) => this;
+  isRecording: () => boolean;
 }
 
 export enum BytesFactor {
