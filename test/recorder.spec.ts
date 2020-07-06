@@ -27,7 +27,7 @@ type MockSpawnProcessOptions = {
   onKill?: OnKillType,
 };
 
-function mockSpawnProcess(options: MockSpawnProcessOptions = {}) {
+function mockSpawnProcess (options: MockSpawnProcessOptions = {}) {
   const onSpawn = options.onSpawn ? options.onSpawn : () => null;
   const onKill = options.onKill ? options.onKill : () => true;
 
@@ -49,7 +49,7 @@ let fakeProcess: ChildProcessWithoutNullStreams;
 beforeEach(() => {
   mocked(verifyAllOptions).mockReturnValue([]);
   fakeProcess = mockSpawnProcess();
-  mocked(fs).lstatSync.mockImplementation(() => ({...new Stats(), isDirectory: () => true}));
+  mocked(fs).lstatSync.mockImplementation(() => ({ ...new Stats(), isDirectory: () => true }));
   mocked(fse).move.mockImplementation(() => Promise.resolve(true));
   mocked(fse).remove.mockImplementation(() => Promise.resolve(true));
   mocked(fse).ensureDir.mockImplementation(() => Promise.resolve(true));
@@ -264,7 +264,7 @@ describe('Events', () => {
 
       const onSpaceFull = jest.fn(() => done()).mockName('onSpaceFull');
 
-      new Recorder(URI, PATH, {dirSizeThreshold: 500})
+      new Recorder(URI, PATH, { dirSizeThreshold: 500 })
         .on(RecorderEvents.SPACE_FULL, onSpaceFull)
         .start();
 
@@ -287,7 +287,7 @@ describe('Events', () => {
 
       const onSpaceFull = jest.fn().mockName('onSpaceFull');
 
-      new Recorder(URI, PATH, {dirSizeThreshold: 500})
+      new Recorder(URI, PATH, { dirSizeThreshold: 500 })
         .on(RecorderEvents.SPACE_FULL, onSpaceFull)
         .start();
 
@@ -314,7 +314,7 @@ describe('Events', () => {
 
       const onSpaceWiped = jest.fn(() => done()).mockName('onSpaceWiped');
 
-      new Recorder(URI, PATH, {dirSizeThreshold: 500, autoClear: true})
+      new Recorder(URI, PATH, { dirSizeThreshold: 500, autoClear: true })
         .on(RecorderEvents.SPACE_WIPED, onSpaceWiped)
         .start();
 
@@ -338,7 +338,7 @@ describe('Events', () => {
   describe(RecorderEvents.ERROR, () => {
     test('If opening a file to write segment into has failed.', (done) => {
       const SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
-      const onError = jest.fn(() => done());
+      const onError = jest.fn(() => done()).mockName('onError');
 
       new Recorder(URI, PATH)
         .on(RecorderEvents.ERROR, onError)
@@ -351,7 +351,7 @@ describe('Events', () => {
     });
 
     test('If ffmpeg process failed.', (done) => {
-      const onError = jest.fn(() => done());
+      const onError = jest.fn(() => done()).mockName('onError');
 
       new Recorder(URI, PATH)
         .on(RecorderEvents.ERROR, onError)
@@ -364,7 +364,7 @@ describe('Events', () => {
     });
 
     test('If process already started.', (done) => {
-      const onError = jest.fn(() => done());
+      const onError = jest.fn(() => done()).mockName('onError');
 
       new Recorder(URI, PATH)
         .on(RecorderEvents.ERROR, onError)
@@ -375,8 +375,8 @@ describe('Events', () => {
       expect(onError).toBeCalledWith(new RecorderError('Process already spawned.'));
     });
 
-    test('If try to stop not started process.', (done) => {
-      const onError = jest.fn(() => done());
+    test('If try to stop not started process.', async (done) => {
+      const onError = jest.fn().mockName('onError');
 
       new Recorder(URI, PATH)
         .on(RecorderEvents.ERROR, onError)
@@ -384,13 +384,15 @@ describe('Events', () => {
 
       expect(onError).toBeCalledTimes(1);
       expect(onError).toBeCalledWith(new RecorderError('No process spawned.'));
+
+      done();
     });
 
     test('In case of segment destination is not a directory for some reason.', async (done) => {
       const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
       const SECOND_SEGMENT = `${PATH}/2020.06.25.10.28.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
-      mocked(fs).lstatSync.mockImplementation(() => ({...new Stats(), isDirectory: () => false}));
-      const onError = jest.fn(() => done());
+      mocked(fs).lstatSync.mockImplementation(() => ({ ...new Stats(), isDirectory: () => false }));
+      const onError = jest.fn(() => done()).mockName('onError');
 
       new Recorder(URI, PATH)
         .on(RecorderEvents.ERROR, onError)
@@ -408,7 +410,7 @@ describe('Events', () => {
     test('In case of moving segment failed.', async (done) => {
       const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
       const SECOND_SEGMENT = `${PATH}/2020.06.25.10.28.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
-      const onError = jest.fn(() => done());
+      const onError = jest.fn(() => done()).mockName('onError');
       mocked(fse).move.mockImplementation(() => {
         throw new Error('Moving failed.');
       });
@@ -427,12 +429,12 @@ describe('Events', () => {
     });
 
     test('DU has failed for some reason.', async (done) => {
-      const onError = jest.fn(() => done());
+      const onError = jest.fn(() => done()).mockName('onError');
       mocked(du).mockImplementation(() => {
         throw new Error('DU has failed for some reason.');
       });
 
-      new Recorder(URI, PATH, {dirSizeThreshold: 500})
+      new Recorder(URI, PATH, { dirSizeThreshold: 500 })
         .on(RecorderEvents.ERROR, onError)
         .start();
 
@@ -447,9 +449,9 @@ describe('Events', () => {
     test('In case of can\'t remove a directory', async (done) => {
       mocked(du).mockImplementation(() => 500);
       mocked(fs).readdirSync.mockImplementation(() => []);
-      const onError = jest.fn(() => done());
+      const onError = jest.fn().mockName('onError');
 
-      new Recorder(URI, PATH, {dirSizeThreshold: 500, autoClear: true})
+      new Recorder(URI, PATH, { dirSizeThreshold: 500, autoClear: true })
         .on(RecorderEvents.ERROR, onError)
         .start();
 
@@ -460,30 +462,32 @@ describe('Events', () => {
 
       expect(onError).toBeCalledTimes(1);
       expect(onError).toBeCalledWith(new Error('Can\'t remove current directory.'));
+
+      done();
     });
   });
 
   describe(RecorderEvents.PROGRESS, () => {
     test('A message from stderr just translated from buffer to string and proxied to a progress event.', async (done) => {
-      const onProgress = jest.fn(() => done());
+      const onProgress = jest.fn().mockName('onProgress');
 
       new Recorder(URI, PATH)
         .on(RecorderEvents.PROGRESS, onProgress)
         .start();
 
-        fakeProcess.stderr.emit('data', Buffer.from(`Random progress message.`, 'utf8'));
-        // https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
-        await Promise.resolve();
+      fakeProcess.stderr.emit('data', Buffer.from(`Random progress message.`, 'utf8'));
 
       expect(onProgress).toBeCalledTimes(1);
       expect(onProgress).toBeCalledWith('Random progress message.');
+
+      done();
     });
   });
 });
 
 describe('Process', () => {
   test('Spawn arguments with no additional options defined', (done) => {
-    function onSpawn(command: string, args: ReadonlyArray<string>, options: object) {
+    function onSpawn (command: string, args: ReadonlyArray<string>, options: object) {
       expect(command).toEqual('ffmpeg');
       expect(args).toEqual([
         '-i',
@@ -515,7 +519,7 @@ describe('Process', () => {
   });
 
   test('Spawn arguments with options defined', (done) => {
-    function onSpawn(command: string, args: ReadonlyArray<string>, options: object) {
+    function onSpawn (command: string, args: ReadonlyArray<string>, options: object) {
       expect(command).toEqual('ffmpeg');
       expect(args).toEqual([
         '-i',

@@ -73,11 +73,9 @@ export default class Recorder implements IRecorder {
   }
 
   public stop = () => {
-    try {
-      this.stopRecord();
-    } catch (err) {
+    this.stopRecord().catch((err) => {
       this.eventEmitter.emit(Events.ERROR, err);
-    }
+    });
     return this;
   }
 
@@ -97,7 +95,6 @@ export default class Recorder implements IRecorder {
     this.eventEmitter.on(Events.SPACE_FULL, this.onSpaceFull);
     this.eventEmitter.on(Events.PROGRESS, this.onProgress);
     this.eventEmitter.on(Events.STOP, this.stopRecord);
-    this.eventEmitter.on(Events.STOPPED, this.onStopped);
 
     this.process = this.spawnFFMPEG();
 
@@ -115,12 +112,17 @@ export default class Recorder implements IRecorder {
     });
   }
 
-  private stopRecord = () => {
+  private stopRecord = async () => {
     if (!this.process) {
-      throw new RecorderError('No process spawned.');
+      this.eventEmitter.emit(Events.ERROR, new RecorderError('No process spawned.'));
+      return;
     }
     this.process.kill();
     this.process = null;
+    if (this.previousSegment) {
+      await this.moveSegment(this.previousSegment);
+      this.previousSegment = undefined;
+    }
     this.eventEmitter.emit(Events.STOPPED, 0, 'Programmatically stopped.');
   }
 
@@ -213,13 +215,6 @@ export default class Recorder implements IRecorder {
     } catch (err) {
       this.eventEmitter.emit(Events.ERROR, err);
       this.eventEmitter.emit(Events.STOP);
-    }
-  }
-
-  private onStopped = async () => {
-    if (this.previousSegment) {
-      await this.moveSegment(this.previousSegment);
-      this.previousSegment = undefined;
     }
   }
 

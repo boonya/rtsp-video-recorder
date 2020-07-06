@@ -2,7 +2,9 @@ import readline from 'readline';
 import Recorder, { RecorderEvents } from './recorder';
 
 const log = (event: string) => (...args: any[]) => {
-  console.log(`${new Date().toISOString().split('T').join(' ')} :: Event "${event}": `, ...args);
+  console.log(new Date().toString());
+  console.log(`Event "${event}": `, ...args);
+  console.log();
 };
 
 readline.emitKeypressEvents(process.stdin);
@@ -11,16 +13,34 @@ if (process.stdin.isTTY) {
 }
 
 try {
+  const {
+    IP,
+    TITLE,
+    SEGMENT_TIME,
+    THRESHOLD,
+    DIRECTORY_PATTERN,
+    FILENAME_PATTERN,
+    AUTO_CLEAR,
+  } = process.env;
+
+  const ip = IP || '192.168.0.100';
+  const title = TITLE || 'Test cam';
+  const segmentTime = SEGMENT_TIME || '10m';
+  const dirSizeThreshold = THRESHOLD || '500M';
+  const autoClear = AUTO_CLEAR === 'false' ? false : true;
+  const directoryPattern = DIRECTORY_PATTERN || '%Y.%m.%d';
+  const filenamePattern = FILENAME_PATTERN || `%H.%M.%S-${title}`;
+
   const recorder = new Recorder(
-    'rtsp://192.168.0.100:554/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp?real_stream',
+    `rtsp://${ip}:554/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp?real_stream`,
     'dist/Recorder',
     {
-      title: 'Test cam',
-      segmentTime: '10m',
-      directoryPattern: '%Y.%m.%d',
-      filenamePattern: '%H.%M.%S-test-cam',
-      dirSizeThreshold: '20G',
-      autoClear: true,
+      title,
+      segmentTime,
+      directoryPattern,
+      filenamePattern,
+      dirSizeThreshold,
+      autoClear,
     },
   );
 
@@ -38,9 +58,15 @@ try {
   process.stdin.on('keypress', (_, key) => {
     if (key.ctrl && key.name === 'c') {
       if (recorder.isRecording()) {
-        recorder.stop();
+        recorder
+          .on(RecorderEvents.STOPPED, () => {
+            console.log('Gracefully stopped.');
+            process.exit();
+          })
+          .stop();
+      } else {
+        process.exit();
       }
-      process.exit();
     } else if (key.name === 'space') {
       recorder.isRecording()
         ? recorder.stop()
