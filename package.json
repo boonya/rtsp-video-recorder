@@ -42,10 +42,8 @@
     "@types/node": "^13.9.8",
     "@types/strftime": "^0.9.2",
     "jest": "^25.2.4",
-    "prettier": "^2.0.2",
     "ts-jest": "^25.5.1",
     "tslint": "^6.1.0",
-    "tslint-config-prettier": "^1.18.0",
     "tslint-config-standard": "^9.0.0",
     "typescript": "^3.8.3"
   }

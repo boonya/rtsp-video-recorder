@@ -192,12 +192,11 @@ export default class Recorder implements IRecorder {
       await clearSpace(this.path);
 
       const used = await du(this.path, { disk: true });
-      const threshold = this.dirSizeThreshold;
 
       this.eventEmitter.emit(Events.SPACE_WIPED, {
         path: this.path,
+        threshold: this.dirSizeThreshold,
         used,
-        threshold,
       });
     } catch (err) {
       this.eventEmitter.emit(Events.ERROR, err);

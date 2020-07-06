@@ -2,8 +2,8 @@
 
 ## Provides an API to record rtsp video stream as a mp4 files splitted out on segments
 
-![On push workflow](https://github.com/boonya/rtsp-video-recorder/workflows/On%20push%20workflow/badge.svg)
-![Publish](https://github.com/boonya/rtsp-video-recorder/workflows/Publish/badge.svg)
+![Lint and test](https://github.com/boonya/rtsp-video-recorder/workflows/On%20push%20workflow/badge.svg)
+![Lint, test, build and publish](https://github.com/boonya/rtsp-video-recorder/workflows/Publish/badge.svg)
 [![npm](https://img.shields.io/npm/v/rtsp-video-recorder)](https://www.npmjs.com/package/rtsp-video-recorder)
 [![maintainability](https://img.shields.io/codeclimate/maintainability-percentage/boonya/rtsp-video-recorder?label=maintainability)](https://codeclimate.com/github/boonya/rtsp-video-recorder/maintainability)
 ![bundle size](https://img.shields.io/bundlephobia/min/rtsp-video-recorder)
@@ -11,7 +11,7 @@
 
 ## Precondition
 
-This library spawns `ffmpeg` as a child process, so it won't work with no `ffmpeg` package installed.
+This library spawns `ffmpeg` as a child process, so it won't work with no `ffmpeg` installed.
 To do so just type:
 
 ```bash
@@ -29,7 +29,7 @@ Installation process of this lib as simple as it can be. Just run
 npm i --save rtsp-video-recorder
 ```
 
-And after that you can use is as on example below
+After that you can use it like on example below
 
 ## Example
 

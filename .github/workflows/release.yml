@@ -12,7 +12,7 @@ jobs:
           node-version: 12
       - run: npm ci
       - run: npm run lint:prod
-      - run: npm run test -- --coverage
+      - run: npm run test:coverage
       - run: npm run build
       - uses: JS-DevTools/npm-publish@v1
         with:
