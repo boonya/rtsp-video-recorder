@@ -32,19 +32,19 @@
   "license": "MIT",
   "dependencies": {
     "du": "^1.0.0",
-    "fs-extra": "^9.0.0",
+    "fs-extra": "^9.0.1",
     "strftime": "^0.10.0"
   },
   "devDependencies": {
     "@types/du": "^1.0.0",
-    "@types/fs-extra": "^8.1.0",
-    "@types/jest": "^25.1.4",
-    "@types/node": "^13.9.8",
+    "@types/fs-extra": "^9.0.1",
+    "@types/jest": "^26.0.3",
+    "@types/node": "^14.0.14",
     "@types/strftime": "^0.9.2",
-    "jest": "^25.2.4",
-    "ts-jest": "^25.5.1",
-    "tslint": "^6.1.0",
+    "jest": "^26.1.0",
+    "ts-jest": "^26.1.1",
+    "tslint": "^6.1.2",
     "tslint-config-standard": "^9.0.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.6"
   }
 }
