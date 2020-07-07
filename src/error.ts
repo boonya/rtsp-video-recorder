@@ -1,13 +1,13 @@
 // tslint:disable: max-classes-per-file
 export class RecorderError extends Error {
-  constructor(...props: any) {
+  constructor (...props: any) {
     super(...props);
     Object.setPrototypeOf(this, RecorderError.prototype);
   }
 }
 
 export class RecorderValidationError extends RecorderError {
-  constructor(message: string, public errors: string[] = []) {
+  constructor (message: string, public errors: string[] = []) {
     super(message);
     Object.setPrototypeOf(this, RecorderValidationError.prototype);
   }

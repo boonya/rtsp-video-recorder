@@ -10,7 +10,7 @@
   "linterOptions": {
     "exclude": [
       "src/example.ts",
-      "src/*.spec.ts"
+      "test/*.spec.ts"
     ]
   }
 }

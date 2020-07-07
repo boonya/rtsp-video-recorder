@@ -2,16 +2,16 @@
 
 ## Provides an API to record rtsp video stream as a mp4 files splitted out on segments
 
-![On push workflow](https://github.com/boonya/rtsp-video-recorder/workflows/On%20push%20workflow/badge.svg)
-![Publish](https://github.com/boonya/rtsp-video-recorder/workflows/Publish/badge.svg)
+![Lint and test](https://github.com/boonya/rtsp-video-recorder/workflows/On%20push%20workflow/badge.svg)
+![Lint, test, build and publish](https://github.com/boonya/rtsp-video-recorder/workflows/Publish/badge.svg)
 [![npm](https://img.shields.io/npm/v/rtsp-video-recorder)](https://www.npmjs.com/package/rtsp-video-recorder)
 [![maintainability](https://img.shields.io/codeclimate/maintainability-percentage/boonya/rtsp-video-recorder?label=maintainability)](https://codeclimate.com/github/boonya/rtsp-video-recorder/maintainability)
 ![bundle size](https://img.shields.io/bundlephobia/min/rtsp-video-recorder)
 ![dependencies](https://img.shields.io/librariesio/release/npm/rtsp-video-recorder)
 
-### Precondition
+## Precondition
 
-This library spawns `ffmpeg` as a child process, so it won't work with no `ffmpeg` package installed.
+This library spawns `ffmpeg` as a child process, so it won't work with no `ffmpeg` installed.
 To do so just type:
 
 ```bash
@@ -21,7 +21,7 @@ sudo apt install -y ffmpeg
 
 If you prefer different package manager or work on different linux distro use appropriate to your system command.
 
-### Installation
+## Installation
 
 Installation process of this lib as simple as it can be. Just run
 
@@ -29,101 +29,232 @@ Installation process of this lib as simple as it can be. Just run
 npm i --save rtsp-video-recorder
 ```
 
-And after that you can use is as on example below
+After that you can use it like on example below
 
-### Example
+## Example
+
+### Init an instance of recorder
 
 ```ts
-import Recorder, { RecorderEvents } from "rtsp-video-recorder";
+import Recorder, { RecorderEvents } from 'rtsp-video-recorder';
 
-const recorder = new Recorder("rtsp://username:password@host/path", "/media/Recorder", {
-  title: "Test Camera",
+const recorder = new Recorder('rtsp://username:password@host/path', '/media/Recorder', {
+  title: 'Test Camera',
 });
+```
 
-// Start recording
-recorder.start();
+### Assign event handlers you need
 
-recorder.on(RecorderEvents.STARTED, () => {
-  /** Do what you need in case of recording started */
+#### `started` event
+
+Handler receives an object that contains options applied to the current process
+
+- Default values if no options passed.
+- Converted values in case of some options if passed.
+
+```ts
+recorder.on(RecorderEvents.STARTED, (payload) => {
+  assert.equal(payload, {
+    uri: 'rtsp://username:password@host/path',
+    path: '/media/Recorder',
+    title: 'Test Camera',
+    directoryPattern: '%Y.%m.%d',
+    filenamePattern: '%H.%M.%S',
+    segmentTime: 600,
+    autoClear: false,
+    ffmpegBinary: 'ffmpeg',
+  });
 });
+```
 
-recorder.on(RecorderEvents.STOPPED, () => {
-  /** Do what you need in case of recording stopped */
+#### `stopped` event
+
+If stopped programmatically handler receives 0 exit code & reason message that it stopped programmatically.
+
+```ts
+recorder.on(RecorderEvents.STOPPED, (payload) => {
+  assert.equal(payload, 0, 'Programmatically stopped.');
 });
+```
 
+Or if stop reason is FFMPEG process exited, handler receives an exit code of ffmpeg process and a message that FFMPEG exited.
+
+```ts
+recorder.on(RecorderEvents.STOPPED, (payload) => {
+  assert.equal(payload, 255, 'FFMPEG exited. Code 255.');
+});
+```
+
+#### `segment_started` event
+
+Event handler receives a path to current and previous segments.
+
+```ts
+recorder.on(RecorderEvents.SEGMENT_STARTED, (payload) => {
+  assert.equal(payload, {
+    current: '/media/Recorder/2020.06.25.10.28.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4',
+    previous: '/media/Recorder/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4',
+  });
+});
+```
+
+Or just current if it's first segment during this run.
+
+```ts
+recorder.on(RecorderEvents.SEGMENT_STARTED, (payload) => {
+  assert.equal({
+    current: '/media/Recorder/2020.06.25.10.28.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4',
+  });
+});
+```
+
+#### `directory_created` event
+
+Directory should be created in case of segment has to be moved into but directory does not exist.
+
+```ts
+recorder.on(RecorderEvents.DIRECTORY_CREATED, (payload) => {
+  assert.equal(payload, {
+    path: '/media/Recorder/2020.06.25',
+    name: '2020.06.25',
+  });
+});
+```
+
+#### `file_created` event
+
+New file should be created when new segment started.
+
+```ts
+recorder.on(RecorderEvents.FILE_CREATED, (payload) => {
+  assert.equal(payload, {
+    dirpath: '/media/Recorder/2020.06.25',
+    dirname: '2020.06.25',
+    filepath: `/media/Recorder/2020.06.25/Test Camera-10.18.04.mp4`,
+    filename: 'Test Camera-10.18.04.mp4',
+  });
+});
+```
+
+#### `space_full` event
+
+If no space left an event should be emitted and payload raised.
+
+There is approximation percentage which is set to 1, so when you reach out 496 you'll have `space_full` event emitted if you set your threshold e.g. 500.
+In other words it works based on formula `Math.ceil(used + used * APPROXIMATION_PERCENTAGE / 100) > threshold` where `threshold` is you threshold valud and `used` is amount of space used.
+
+```ts
+recorder.on(RecorderEvents.SPACE_FULL, (payload) => {
+  assert.equal(payload, {
+    path: '/media/Recorder',
+    threshold: 500,
+    used: 496,
+  });
+});
+```
+
+#### `space_wiped` event
+
+If no space left recorder directory should be wiped.
+The oldest subdirectory should be removed only. An event handler will get an object with
+`path`, `threshold` and space `used` which left after clear.
+
+```ts
+recorder.on(RecorderEvents.SPACE_WIPED, (payload) => {
+  assert.equal(payload, {
+    path: '/media/Recorder',
+    threshold: 500,
+    used: 200,
+  });
+});
+```
+
+#### `error` event
+
+```ts
 recorder.on(RecorderEvents.ERROR, () => {
   /** Do what you need in case of recording error */
 });
+```
 
-recorder.on(RecorderEvents.SEGMENT_STARTED, () => {
-  /** Do what you need in case of new segment started */
-});
+### Start recording
 
-recorder.on(RecorderEvents.DIRECTORY_CREATED, () => {
-  /** Do what you need in case of new directory created */
-});
+```ts
+recorder.start();
+```
 
-recorder.on(RecorderEvents.FILE_CREATED, () => {
-  /** Do what you need in case of new file created */
-});
+### Stop recording
 
-recorder.on(RecorderEvents.SPACE_FULL, () => {
-  /** Do what you need in case of space is full */
-});
-
-recorder.on(RecorderEvents.SPACE_WIPED, () => {
-  /** Do what you need in case of space wiped */
-});
-
-// Stop recording
+```ts
 recorder.stop();
 ```
 
-### Properties
+### If you need to know whether recording is in process or no
 
-#### uri
+You can execute `isRecording` methond on recorder instance which returns boolean value
+
+```ts
+recorder.isRecording();
+```
+
+### It also supports [Fluent Interface](https://en.wikipedia.org/wiki/Fluent_interface#JavaScript)
+
+```ts
+import Recorder, { RecorderEvents } from 'rtsp-video-recorder';
+
+new Recorder('rtsp://username:password@host/path', '/media/Recorder')
+  .on(RecorderEvents.STARTED, onStarted)
+  .on(RecorderEvents.STOPPED, onStopped)
+  .on(RecorderEvents.FILE_CREATED, onFileCreated)
+  .start();
+```
+
+## Properties
+
+### uri
 
 RTSP stream URI.
+e.g. `rtsp://username:password@host/path`
 
-#### path
+### path
 
 Path to the directory for video records.
 It may be relative but better to define it in absolute manner.
 
-### Options
+## Options
 
-#### directoryPattern
+### directoryPattern
 
 Directory name pattern. By default it is `%Y.%m.%d` which will be translated to e.g. `2020.01.03`
 
 _Accepts C++ strftime specifiers:_ http://www.cplusplus.com/reference/ctime/strftime/
 
-#### filenamePattern
+### filenamePattern
 
 File name pattern. By default it is `%H.%M.%S` which will be translated to e.g. `03.19.15`
 
 _Accepts C++ strftime specifiers:_ http://www.cplusplus.com/reference/ctime/strftime/
 
-#### segmentTime
+### segmentTime
 
 Duration of one video file (in seconds).
 600 seconds or 10 minutes by default if not defined.
 It can be a number of seconds or string xs, xm or xh what means amount of seconds, minutes or hours respectively.
 
-#### title
+### title
 
 Title of video file. Used as metadata of video file.
 
-#### dirSizeThreshold
+### dirSizeThreshold
 
 In case you have this option specified you will have ability to catch `SPACE_FULL` event whent threshold is reached. It can be a number of bytes or string xM, xG or xT what means amount of Megabytes, Gigabytes or Terrabytes respectively.
 
-#### autoClear
+### autoClear
 
 This option is `false` bu default. So, if you reach a threshold your `Recorder` emits `SPACE_FULL` event and stops. But if you specify this option as `true` it will remove the oldest directory in case threshold reached out. Also it does emit `SPACE_WIPED` event in case of some directory removed.
 
 _NOTE that option does not make sence if `dirSizeThreshold` option is not specified._
 
-#### ffmpegBinary
+### ffmpegBinary
 
 In case you need to specify a path to ffmpeg binary you can do it usin this argument.

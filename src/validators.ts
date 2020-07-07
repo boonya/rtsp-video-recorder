@@ -1,7 +1,7 @@
 import pathApi from 'path';
 
 import { Options, SegmentTimeOption, DirSizeThresholdOption } from './types';
-import Helpers from './helpers';
+import { directoryExists, transformSegmentTime, transformDirSizeThreshold } from './helpers';
 
 /**
  * @return false or string
@@ -9,7 +9,7 @@ import Helpers from './helpers';
 export const verifyPath = (value: string) => {
   try {
     const path = pathApi.resolve(value);
-    if (!Helpers.directoryExists(path)) {
+    if (!directoryExists(path)) {
       return `${path} is not a directory`;
     }
   } catch (err) {
@@ -31,7 +31,7 @@ export const verifySegmentTime = (value: SegmentTimeOption) => {
 
   if (typeof value === 'string') {
     try {
-      const seconds = Helpers.transformSegmentTime(value);
+      const seconds = transformSegmentTime(value);
       const error = verifySegmentTimeMinimum(seconds);
       if (error) {
         return error;
@@ -57,7 +57,7 @@ export const verifyDirSizeThreshold = (value: DirSizeThresholdOption) => {
 
   if (typeof value === 'string') {
     try {
-      const bytes = Helpers.transformDirSizeThreshold(value);
+      const bytes = transformDirSizeThreshold(value);
       const error = verifyDirSizeThresholdMinimum(bytes);
       if (error) {
         return error;
@@ -92,8 +92,6 @@ export const verifyAllOptions = (path: string, { segmentTime, dirSizeThreshold }
   const pathError = verifyPath(path);
   if (pathError) errors.push(pathError);
 
-  // TODO: Validate dateFormat & timeFormat to be a valid cpp strftime format strings
-
   if (segmentTime) {
     const error = verifySegmentTime(segmentTime);
     if (error) errors.push(error);
@@ -106,5 +104,3 @@ export const verifyAllOptions = (path: string, { segmentTime, dirSizeThreshold }
 
   return errors;
 };
-
-export default { verifyAllOptions };
