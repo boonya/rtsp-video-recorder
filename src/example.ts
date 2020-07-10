@@ -1,3 +1,4 @@
+// tslint:disable no-console
 import readline from 'readline';
 import Recorder, { RecorderEvents } from './recorder';
 
@@ -21,10 +22,14 @@ try {
     DIRECTORY_PATTERN,
     FILENAME_PATTERN,
     AUTO_CLEAR,
+    DESTINATION,
   } = process.env;
 
-  const ip = IP || '192.168.0.100';
-  const title = TITLE || 'Test cam';
+  if (!IP || !DESTINATION) {
+    throw new Error('You have to specify at least IP & DESTINATION.');
+  }
+
+  const title = TITLE || 'Example cam';
   const segmentTime = SEGMENT_TIME || '10m';
   const dirSizeThreshold = THRESHOLD || '500M';
   const autoClear = AUTO_CLEAR === 'false' ? false : true;
@@ -32,8 +37,7 @@ try {
   const filenamePattern = FILENAME_PATTERN || `%H.%M.%S-${title}`;
 
   const recorder = new Recorder(
-    `rtsp://${ip}:554/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp?real_stream`,
-    'dist/Recorder',
+    `rtsp://${IP}:554/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp?real_stream`, DESTINATION,
     {
       title,
       segmentTime,
@@ -76,5 +80,5 @@ try {
   console.log('Press "space" to start/stop recording, "ctrl + c" to stop a process.');
   console.log();
 } catch (err) {
-  console.error(err.message, { err });
+  console.error(err);
 }
