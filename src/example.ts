@@ -1,4 +1,3 @@
-// tslint:disable no-console
 import readline from 'readline';
 import Recorder, { RecorderEvents } from './recorder';
 
@@ -59,7 +58,7 @@ try {
     .on(RecorderEvents.SPACE_FULL, log(RecorderEvents.SPACE_FULL))
     .on(RecorderEvents.SPACE_WIPED, log(RecorderEvents.SPACE_WIPED));
 
-  process.stdin.on('keypress', (_, key) => {
+  process.stdin.on('keypress', (_, key: {ctrl: boolean, name: string}) => {
     if (key.ctrl && key.name === 'c') {
       if (recorder.isRecording()) {
         recorder

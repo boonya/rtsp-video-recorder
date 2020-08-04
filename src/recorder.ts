@@ -22,15 +22,15 @@ const APPROXIMATION_PERCENTAGE = 1;
 
 export default class Recorder implements IRecorder {
   private title?: string;
-  private ffmpegBinary: string = 'ffmpeg';
+  private ffmpegBinary = 'ffmpeg';
 
   /**
    * @READ: http://www.cplusplus.com/reference/ctime/strftime/
    */
-  private directoryPattern: string = '%Y.%m.%d';
-  private filenamePattern: string = '%H.%M.%S';
+  private directoryPattern = '%Y.%m.%d';
+  private filenamePattern = '%H.%M.%S';
 
-  private segmentTime: number = 600; // 10 minutes or 600 seconds
+  private segmentTime = 600; // 10 minutes or 600 seconds
 
   private dirSizeThreshold?: number; // bytes
 
@@ -38,7 +38,7 @@ export default class Recorder implements IRecorder {
 
   private process: ChildProcessWithoutNullStreams | null = null;
   private eventEmitter: EventEmitter;
-  private uriHash?: string;
+  private uriHash: string;
   private previousSegment?: string;
 
   constructor (
@@ -73,9 +73,7 @@ export default class Recorder implements IRecorder {
   }
 
   public stop = () => {
-    this.stopRecord().catch((err) => {
-      this.eventEmitter.emit(Events.ERROR, err);
-    });
+    this.onStop();
     return this;
   }
 
@@ -94,7 +92,7 @@ export default class Recorder implements IRecorder {
     this.eventEmitter.on(Events.SEGMENT_STARTED, this.onSegmentStarted);
     this.eventEmitter.on(Events.SPACE_FULL, this.onSpaceFull);
     this.eventEmitter.on(Events.PROGRESS, this.onProgress);
-    this.eventEmitter.on(Events.STOP, this.stopRecord);
+    this.eventEmitter.on(Events.STOP, this.onStop);
 
     this.process = this.spawnFFMPEG();
 
@@ -181,41 +179,42 @@ export default class Recorder implements IRecorder {
     return process;
   }
 
-  private onSegmentStarted = async ({ previous }: SegmentStartedArg) => {
+  private onStop = () => {
+    this.stopRecord().catch((err) => this.eventEmitter.emit(Events.ERROR, err));
+  };
+
+  private onSegmentStarted = ({ previous }: SegmentStartedArg) => {
     if (previous) {
-      await this.moveSegment(previous);
+      this.moveSegment(previous).catch((err) => this.eventEmitter.emit(Events.ERROR, err));
     }
   }
 
-  private onSpaceFull = async () => {
-    try {
-      if (!this.autoClear) {
-        this.eventEmitter.emit(Events.STOP, 'Space is full');
-        return;
-      }
+  private onSpaceFull = () => {
+    if (!this.autoClear) {
+      this.eventEmitter.emit(Events.STOP, 'Space is full');
+      return;
+    }
 
-      await clearSpace(this.path);
-
-      const used = await du(this.path, { disk: true });
-
-      this.eventEmitter.emit(Events.SPACE_WIPED, {
-        path: this.path,
-        threshold: this.dirSizeThreshold,
-        used,
+    clearSpace(this.path)
+      .then(() => du(this.path, { disk: true }))
+      .then((used) => {
+        this.eventEmitter.emit(Events.SPACE_WIPED, {
+          path: this.path,
+          threshold: this.dirSizeThreshold,
+          used,
+        });
+      })
+      .catch((err) => {
+        this.eventEmitter.emit(Events.ERROR, err);
+        this.eventEmitter.emit(Events.STOP, 'Error', err);
       });
-    } catch (err) {
-      this.eventEmitter.emit(Events.ERROR, err);
-      this.eventEmitter.emit(Events.STOP, 'Error', err);
-    }
   }
 
-  private onProgress = async () => {
-    try {
-      await this.ensureSpaceEnough();
-    } catch (err) {
+  private onProgress = () => {
+    this.ensureSpaceEnough().catch((err) => {
       this.eventEmitter.emit(Events.ERROR, err);
       this.eventEmitter.emit(Events.STOP);
-    }
+    });
   }
 
   private ensureSpaceEnough = async () => {
@@ -235,11 +234,8 @@ export default class Recorder implements IRecorder {
   }
 
   private handleProgressBuffer = (message: string) => {
-    const openingPattern = new RegExp(`Opening '(.+)' for writing`);
-    const openingMatch = message.match(openingPattern);
-
-    const failedPattern = new RegExp(`Failed to open segment '(.+)'`);
-    const failedMatch = message.match(failedPattern);
+    const openingMatch = new RegExp(`Opening '(.+)' for writing`).exec(message);
+    const failedMatch = new RegExp(`Failed to open segment '(.+)'`).exec(message);
 
     if (failedMatch) {
       throw new RecorderError(`Failed to open file '${failedMatch[1]}'.`);

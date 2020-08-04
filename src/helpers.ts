@@ -57,7 +57,7 @@ export const getOldestObject = (listing: string[]) => {
 };
 
 export const matchDirSizeThreshold = (value: string): [number, BytesFactor] => {
-  const match = value.match(DIR_SIZE_THRESHOLD_PATTERN);
+  const match = DIR_SIZE_THRESHOLD_PATTERN.exec(value);
   if (!match) {
     throw new Error(`dirSizeThreshold value has to match to pattern ${DIR_SIZE_THRESHOLD_PATTERN.toString()}.`);
   }
@@ -86,7 +86,7 @@ export const getBytesSize = (operand: number, factor: BytesFactor) => {
 };
 
 export const matchSegmentTime = (value: string): [number, DurationFactor] => {
-  const match = value.match(SEGMENT_TIME_PATTERN);
+  const match = SEGMENT_TIME_PATTERN.exec(value);
   if (!match) {
     throw new Error(`segmentTime value has to match to pattern ${SEGMENT_TIME_PATTERN.toString()}.`);
   }

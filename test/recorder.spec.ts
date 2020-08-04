@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import { EventEmitter } from 'events';
 import fs, { Stats } from 'fs';
 import fse from 'fs-extra';
 import du from 'du';
-// tslint:disable-next-line: no-implicit-dependencies no-submodule-imports
 import { mocked } from 'ts-jest/utils';
 
 import Recorder, { RecorderError, RecorderValidationError, RecorderEvents } from '../src/recorder';
@@ -45,14 +45,26 @@ function mockSpawnProcess (options: MockSpawnProcessOptions = {}) {
   return proc;
 }
 
+/**
+ * see: https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
+ * @param {number} n
+ */
+const waitPromises = async (n: number) => {
+  let count = 0;
+  while (n > count) {
+    await Promise.resolve();
+    count++;
+  }
+}
+
 let fakeProcess: ChildProcessWithoutNullStreams;
 beforeEach(() => {
   mocked(verifyAllOptions).mockReturnValue([]);
   fakeProcess = mockSpawnProcess();
   mocked(fs).lstatSync.mockImplementation(() => ({ ...new Stats(), isDirectory: () => true }));
-  mocked(fse).move.mockImplementation(() => Promise.resolve(true));
-  mocked(fse).remove.mockImplementation(() => Promise.resolve(true));
-  mocked(fse).ensureDir.mockImplementation(() => Promise.resolve(true));
+  mocked(fse).move.mockImplementation();
+  mocked(fse).remove.mockImplementation();
+  mocked(fse).ensureDir.mockImplementation();
 });
 
 afterEach(() => {
@@ -281,7 +293,7 @@ describe('Events', () => {
       });
     });
 
-    test('If no space enough an event won\'t be emitted.', async (done) => {
+    test('If no space enough an event won\'t be emitted.', (done) => {
       mocked(du).mockImplementation(() => 400);
       mocked(fs).readdirSync.mockImplementation(() => []);
 
@@ -320,11 +332,7 @@ describe('Events', () => {
 
       fakeProcess.stderr.emit('data', Buffer.from(`Random progress message`, 'utf8'));
 
-      // https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
+      await waitPromises(1);
 
       expect(onSpaceWiped).toBeCalledTimes(1);
       expect(onSpaceWiped).toBeCalledWith({
@@ -375,7 +383,7 @@ describe('Events', () => {
       expect(onError).toBeCalledWith(new RecorderError('Process already spawned.'));
     });
 
-    test('If try to stop not started process.', async (done) => {
+    test('If try to stop not started process.', (done) => {
       const onError = jest.fn().mockName('onError');
 
       new Recorder(URI, PATH)
@@ -456,9 +464,7 @@ describe('Events', () => {
         .start();
 
       fakeProcess.stderr.emit('data', Buffer.from(`Random progress message`, 'utf8'));
-      // https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
-      await Promise.resolve();
-      await Promise.resolve();
+      await waitPromises(3);
 
       expect(onError).toBeCalledTimes(1);
       expect(onError).toBeCalledWith(new Error('Can\'t remove current directory.'));
@@ -468,7 +474,7 @@ describe('Events', () => {
   });
 
   describe(RecorderEvents.PROGRESS, () => {
-    test('A message from stderr just translated from buffer to string and proxied to a progress event.', async (done) => {
+    test('A message from stderr just translated from buffer to string and proxied to a progress event.', (done) => {
       const onProgress = jest.fn().mockName('onProgress');
 
       new Recorder(URI, PATH)
@@ -486,69 +492,68 @@ describe('Events', () => {
 });
 
 describe('Process', () => {
-  test('Spawn arguments with no additional options defined', (done) => {
-    function onSpawn (command: string, args: ReadonlyArray<string>, options: object) {
-      expect(command).toEqual('ffmpeg');
-      expect(args).toEqual([
-        '-i',
-        URI,
-        '-an',
-        '-vcodec',
-        'copy',
-        '-rtsp_transport',
-        'tcp',
-        '-vsync',
-        '1',
-        '-f',
-        'segment',
-        '-segment_time',
-        '600',
-        '-reset_timestamps',
-        '1',
-        '-strftime',
-        '1',
-        `${PATH}/%Y.%m.%d.%H.%M.%S.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`,
-      ]);
-      expect(options).toEqual({ detached: false });
-      done();
-    }
+  test('Spawn arguments with no additional options defined', () => {
+    const onSpawn = jest.fn().mockName('onSpawn');
 
     mockSpawnProcess({ onSpawn });
 
     new Recorder(URI, PATH).start();
+
+    expect(onSpawn).toBeCalledWith('ffmpeg', [
+      '-i',
+      URI,
+      '-an',
+      '-vcodec',
+      'copy',
+      '-rtsp_transport',
+      'tcp',
+      '-vsync',
+      '1',
+      '-f',
+      'segment',
+      '-segment_time',
+      '600',
+      '-reset_timestamps',
+      '1',
+      '-strftime',
+      '1',
+      `${PATH}/%Y.%m.%d.%H.%M.%S.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`,
+    ], { detached: false });
   });
 
-  test('Spawn arguments with options defined', (done) => {
-    function onSpawn (command: string, args: ReadonlyArray<string>, options: object) {
-      expect(command).toEqual('ffmpeg');
-      expect(args).toEqual([
-        '-i',
-        URI,
-        '-an',
-        '-vcodec',
-        'copy',
-        '-rtsp_transport',
-        'tcp',
-        '-vsync',
-        '1',
-        '-metadata',
-        'title=Any video title',
-        '-f',
-        'segment',
-        '-segment_time',
-        '1000',
-        '-reset_timestamps',
-        '1',
-        '-strftime',
-        '1',
-        `${PATH}/%Y.%m.%d.%H.%M.%S.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`,
-      ]);
-      expect(options).toEqual({ detached: false });
-      done();
-    }
+  test('Spawn arguments with options defined', () => {
+    const onSpawn = jest.fn().mockName('onSpawn');
 
     mockSpawnProcess({ onSpawn });
 
-    new Recorder(URI, PATH, { title: 'Any video title', segmentTime: 1000 }).start();
+    new Recorder(URI, PATH, {
+      title: 'Any video title',
+      segmentTime: 1000,
+      ffmpegBinary: '/bin/ffmpeg',
+    }).start();
+
+    expect(onSpawn).toBeCalledWith('/bin/ffmpeg', [
+      '-i',
+      URI,
+      '-an',
+      '-vcodec',
+      'copy',
+      '-rtsp_transport',
+      'tcp',
+      '-vsync',
+      '1',
+      '-metadata',
+      'title=Any video title',
+      '-f',
+      'segment',
+      '-segment_time',
+      '1000',
+      '-reset_timestamps',
+      '1',
+      '-strftime',
+      '1',
+      `${PATH}/%Y.%m.%d.%H.%M.%S.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`,
+    ], { detached: false });
   });
 });
+/* eslint-disable @typescript-eslint/no-unsafe-return */

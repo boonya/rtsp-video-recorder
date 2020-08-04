@@ -1,4 +1,4 @@
-// tslint:disable: max-classes-per-file
+/* eslint-disable max-classes-per-file */
 export class RecorderError extends Error {
   constructor (...props: any) {
     super(...props);
@@ -17,4 +17,4 @@ export default {
   RecorderError,
   RecorderValidationError,
 };
-// tslint:enable: max-classes-per-file
+/* eslint-enable max-classes-per-file */
