@@ -276,6 +276,7 @@ export default class Recorder implements IRecorder {
       const target = `${dirpath}/${filename}`;
       await fse.move(path, target);
       this.eventEmitter.emit(Events.FILE_CREATED, {
+        source: path,
         filepath: target,
         dirpath,
         dirname,

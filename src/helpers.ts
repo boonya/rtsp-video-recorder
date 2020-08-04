@@ -51,6 +51,8 @@ export const getOldestObject = (listing: string[]) => {
         created: fs.lstatSync(path).birthtimeMs,
       };
     } catch (err) {
+      // tslint:disable no-console
+      console.info('getOldestObject', { listing, path, err });
       return { path, created: Infinity };
     }
   })

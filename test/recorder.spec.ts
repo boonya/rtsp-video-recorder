@@ -208,7 +208,7 @@ describe('Events', () => {
     test('New file should be created when new segment started.', async (done) => {
       const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
       const SECOND_SEGMENT = `${PATH}/2020.06.25.10.28.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
-      const onFileCreated = jest.fn(() => done());
+      const onFileCreated = jest.fn(() => done()).mockName('onFileCreated');
 
       new Recorder(URI, PATH)
         .on(RecorderEvents.FILE_CREATED, onFileCreated)
@@ -222,6 +222,7 @@ describe('Events', () => {
 
       expect(onFileCreated).toBeCalledTimes(1);
       expect(onFileCreated).toBeCalledWith({
+        source: FIRST_SEGMENT,
         dirpath: `${PATH}/2020.06.25`,
         dirname: '2020.06.25',
         filepath: `${PATH}/2020.06.25/10.18.04.mp4`,
@@ -247,6 +248,7 @@ describe('Events', () => {
 
       expect(onFileCreated).toBeCalledTimes(1);
       expect(onFileCreated).toBeCalledWith({
+        source: FIRST_SEGMENT,
         dirpath: `${PATH}/2020.06.25`,
         dirname: '2020.06.25',
         filepath: `${PATH}/2020.06.25/10.18.04.mp4`,
