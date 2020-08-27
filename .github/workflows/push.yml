@@ -1,11 +1,5 @@
 name: Lint and test
-on:
-  push:
-    tags:
-      - '!*'
-    paths:
-      - '!*.md'
-      - '!LICENSE'
+on: [ push ]
 jobs:
   push:
     runs-on: ubuntu-latest
