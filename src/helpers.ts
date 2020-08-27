@@ -45,11 +45,19 @@ export const clearSpace = async (root: string) => {
 
 export const getOldestObject = (listing: string[]) => {
   const result = listing.map((path) => {
-    return {
-      path,
-      created: fs.lstatSync(path).birthtimeMs,
-    };
-  }).reduce(
+    try {
+      return {
+        path,
+        created: fs.lstatSync(path).birthtimeMs,
+      };
+    } catch (err) {
+      // tslint:disable no-console
+      console.info('getOldestObject', { listing, path, err });
+      return { path, created: Infinity };
+    }
+  })
+  .filter((item) => item.created !== Infinity)
+  .reduce(
     (acc, cur) => acc.created > cur.created ? cur : acc,
     { path: '', created: Infinity },
   );

@@ -1,3 +1,4 @@
+// tslint:disable no-console
 import readline from 'readline';
 import Recorder, { RecorderEvents } from './recorder';
 
@@ -21,19 +22,22 @@ try {
     DIRECTORY_PATTERN,
     FILENAME_PATTERN,
     AUTO_CLEAR,
+    DESTINATION,
   } = process.env;
 
-  const ip = IP || '192.168.0.100';
-  const title = TITLE || 'Test cam';
+  if (!IP || !DESTINATION) {
+    throw new Error('You have to specify at least IP & DESTINATION.');
+  }
+
+  const title = TITLE || 'Example cam';
   const segmentTime = SEGMENT_TIME || '10m';
   const dirSizeThreshold = THRESHOLD || '500M';
-  const autoClear = AUTO_CLEAR === 'false' ? false : true;
+  const autoClear = AUTO_CLEAR === 'true' ? true : false;
   const directoryPattern = DIRECTORY_PATTERN || '%Y.%m.%d';
   const filenamePattern = FILENAME_PATTERN || `%H.%M.%S-${title}`;
 
   const recorder = new Recorder(
-    `rtsp://${ip}:554/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp?real_stream`,
-    'dist/Recorder',
+    `rtsp://${IP}:554/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp?real_stream`, DESTINATION,
     {
       title,
       segmentTime,
@@ -53,28 +57,33 @@ try {
     .on(RecorderEvents.STOP, log(RecorderEvents.STOP))
     // .on(RecorderEvents.PROGRESS, log(RecorderEvents.PROGRESS))
     .on(RecorderEvents.SPACE_FULL, log(RecorderEvents.SPACE_FULL))
-    .on(RecorderEvents.SPACE_WIPED, log(RecorderEvents.SPACE_WIPED));
+    .on(RecorderEvents.SPACE_WIPED, log(RecorderEvents.SPACE_WIPED))
+    .start();
 
   process.stdin.on('keypress', (_, key) => {
     if (key.ctrl && key.name === 'c') {
       if (recorder.isRecording()) {
         recorder
           .on(RecorderEvents.STOPPED, () => {
-            console.log('Gracefully stopped.');
-            process.exit();
+            setTimeout(() => {
+              console.log('Gracefully stopped.');
+              process.exit();
+            }, 2000);
           })
           .stop();
       } else {
         process.exit();
       }
     } else if (key.name === 'space') {
-      recorder.isRecording()
-        ? recorder.stop()
-        : recorder.start();
+      if (recorder.isRecording()) {
+        recorder.stop()
+      } else {
+        recorder.start();
+      }
     }
   });
   console.log('Press "space" to start/stop recording, "ctrl + c" to stop a process.');
   console.log();
 } catch (err) {
-  console.error(err.message, { err });
+  console.error(err);
 }
