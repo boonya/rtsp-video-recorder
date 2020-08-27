@@ -2,12 +2,19 @@
 
 ## Provides an API to record rtsp video stream as a mp4 files splitted out on segments
 
-![Lint and test](https://github.com/boonya/rtsp-video-recorder/workflows/On%20push%20workflow/badge.svg)
-![Lint, test, build and publish](https://github.com/boonya/rtsp-video-recorder/workflows/Publish/badge.svg)
+[![Lint and test](https://github.com/boonya/rtsp-video-recorder/workflows/On%20push%20workflow/badge.svg)](https://github.com/boonya/rtsp-video-recorder/actions?query=workflow%3A%22Lint+and+test%22)
+
+[![Lint, test, build and publish](https://github.com/boonya/rtsp-video-recorder/workflows/Publish/badge.svg)](https://github.com/boonya/rtsp-video-recorder/actions?query=workflow%3A%22Lint%2C+test%2C+build+and+publish%22)
+
 [![npm](https://img.shields.io/npm/v/rtsp-video-recorder)](https://www.npmjs.com/package/rtsp-video-recorder)
-[![maintainability](https://img.shields.io/codeclimate/maintainability-percentage/boonya/rtsp-video-recorder?label=maintainability)](https://codeclimate.com/github/boonya/rtsp-video-recorder/maintainability)
-![bundle size](https://img.shields.io/bundlephobia/min/rtsp-video-recorder)
-![dependencies](https://img.shields.io/librariesio/release/npm/rtsp-video-recorder)
+
+[![Maintainability](https://img.shields.io/codeclimate/maintainability-percentage/boonya/rtsp-video-recorder?label=maintainability)](https://codeclimate.com/github/boonya/rtsp-video-recorder)
+
+[![Test Coverage](https://img.shields.io/codeclimate/coverage/boonya/rtsp-video-recorder)](https://codeclimate.com/github/boonya/rtsp-video-recorder)
+
+![Bundle Size](https://img.shields.io/bundlephobia/min/rtsp-video-recorder)
+
+[![Dependencies](https://img.shields.io/librariesio/release/npm/rtsp-video-recorder)](https://www.npmjs.com/package/rtsp-video-recorder?activeTab=dependencies)
 
 ## Precondition
 
