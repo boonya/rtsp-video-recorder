@@ -1,7 +1,24 @@
 name: Lint and test
-on: [push]
+on: [ push ]
 jobs:
-  push:
+  test:
+    name: Lint & test for node@${{ matrix.node }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest, ubuntu-18.04, ubuntu-16.04 ]
+        node: [ 14, 12, 10 ]
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@master
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - run: npm run lint:prod
+      - run: npm run test
+  coverage:
+    needs: [ test ]
+    name: Sending test coverage to Code Climate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -9,5 +26,10 @@ jobs:
         with:
           node-version: 12
       - run: npm ci
-      - run: npm run lint:prod
-      - run: npm run test:coverage
+      - uses: paambaati/codeclimate-action@v2.6.0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE_TEST_REPORTER_ID }}
+        with:
+          coverageCommand: npm run test:coverage
+          coverageLocations: ${{github.workspace}}/coverage/lcov.info:lcov
+          debug: true
