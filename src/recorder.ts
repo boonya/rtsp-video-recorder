@@ -87,7 +87,7 @@ export default class Recorder implements IRecorder {
   public removeListener = (event: Events, callback: EventCallback) => {
     this.eventEmitter.removeListener(event, callback);
     return this;
-  };
+  }
 
   public isRecording = () => Boolean(this.process);
 
@@ -194,7 +194,7 @@ export default class Recorder implements IRecorder {
       this.eventEmitter.emit(Events.ERROR, err);
       this.eventEmitter.emit(Events.STOP, 'Error', err);
     }
-  };
+  }
 
   private onSegmentStarted = async ({ previous }: SegmentStartedArg) => {
     try {
