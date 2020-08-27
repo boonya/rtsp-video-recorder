@@ -11,3 +11,8 @@ jobs:
       - run: npm ci
       - run: npm run lint:prod
       - run: npm run test:coverage
+      - uses: paambaati/codeclimate-action@v2.2.4
+      env:
+        CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE_TEST_REPORTER_ID }}
+      with:
+        coverageCommand: yarn coverage
