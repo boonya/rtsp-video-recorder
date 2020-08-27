@@ -10,8 +10,9 @@ jobs:
           node-version: 12
       - run: npm ci
       - run: npm run lint:prod
-      - uses: paambaati/codeclimate-action@v2.2.4
+      - uses: paambaati/codeclimate-action@v2.6.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE_TEST_REPORTER_ID }}
         with:
           coverageCommand: npm run test:coverage
+          debug: true
