@@ -3,5 +3,5 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['src', 'test'],
   coverageDirectory: './coverage',
-  coverageReporters: [['lcov', { projectRoot: '..' }]],
+  coverageReporters: ['lcov'],
 };
