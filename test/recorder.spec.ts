@@ -208,6 +208,28 @@ describe('Events', () => {
 
       done();
     });
+
+    test('If specific filePattern option passed file created must be named appropriately.', async (done) => {
+      const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
+      const onFileCreated = jest.fn().mockName('onFileCreated');
+
+      const recorder = new Recorder(URI, PATH, { filePattern: '%Y %B %d/Test Label-%I.%M.%S%p' })
+        .on(RecorderEvents.FILE_CREATED, onFileCreated)
+        .start();
+
+      fakeProcess.stderr.emit('data', Buffer.from(`Opening '${FIRST_SEGMENT}' for writing`, 'utf8'));
+
+      recorder.stop();
+
+      // https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(onFileCreated).toBeCalledTimes(1);
+      expect(onFileCreated).toBeCalledWith(`${PATH}/2020 June 25/Test Label-10.18.04AM.mp4`);
+
+      done();
+    });
   });
 
   describe(RecorderEvents.SPACE_FULL, () => {
