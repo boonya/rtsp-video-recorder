@@ -58,8 +58,7 @@ recorder.on(RecorderEvents.STARTED, (payload) => {
     uri: 'rtsp://username:password@host/path',
     path: '/media/Recorder',
     title: 'Test Camera',
-    directoryPattern: '%Y.%m.%d',
-    filenamePattern: '%H.%M.%S',
+    filePattern: '%Y.%m.%d/%H.%M.%S',
     segmentTime: 600,
     autoClear: false,
     ffmpegBinary: 'ffmpeg',
@@ -108,31 +107,13 @@ recorder.on(RecorderEvents.SEGMENT_STARTED, (payload) => {
 });
 ```
 
-#### `directory_created` event
-
-Directory should be created in case of segment has to be moved into but directory does not exist.
-
-```ts
-recorder.on(RecorderEvents.DIRECTORY_CREATED, (payload) => {
-  assert.equal(payload, {
-    path: '/media/Recorder/2020.06.25',
-    name: '2020.06.25',
-  });
-});
-```
-
 #### `file_created` event
 
-New file should be created when new segment started.
+New file should be created when new segment started or in case of recording stopped.
 
 ```ts
 recorder.on(RecorderEvents.FILE_CREATED, (payload) => {
-  assert.equal(payload, {
-    dirpath: '/media/Recorder/2020.06.25',
-    dirname: '2020.06.25',
-    filepath: `/media/Recorder/2020.06.25/Test Camera-10.18.04.mp4`,
-    filename: 'Test Camera-10.18.04.mp4',
-  });
+  assert.equal(payload, `/media/Recorder/2020.06.25/Test Camera-10.18.04.mp4`);
 });
 ```
 
@@ -223,15 +204,9 @@ It may be relative but better to define it in absolute manner.
 
 ## Options
 
-### directoryPattern
+### filePattern
 
-Directory name pattern. By default it is `%Y.%m.%d` which will be translated to e.g. `2020.01.03`
-
-_Accepts C++ strftime specifiers:_ http://www.cplusplus.com/reference/ctime/strftime/
-
-### filenamePattern
-
-File name pattern. By default it is `%H.%M.%S` which will be translated to e.g. `03.19.15`
+File path pattern. By default it is `%Y.%m.%d/%H.%M.%S` which will be translated to e.g. `2020.01.03/03.19.15`
 
 _Accepts C++ strftime specifiers:_ http://www.cplusplus.com/reference/ctime/strftime/
 

@@ -27,8 +27,7 @@ export default class Recorder implements IRecorder {
   /**
    * @READ: http://www.cplusplus.com/reference/ctime/strftime/
    */
-  private directoryPattern: string = '%Y.%m.%d';
-  private filenamePattern: string = '%H.%M.%S';
+  private filePattern: string = '%Y.%m.%d/%H.%M.%S';
 
   private segmentTime: number = 600; // 10 minutes or 600 seconds
 
@@ -53,8 +52,7 @@ export default class Recorder implements IRecorder {
 
     this.title = options.title;
     this.ffmpegBinary = options.ffmpegBinary || this.ffmpegBinary;
-    this.directoryPattern = options.directoryPattern || this.directoryPattern;
-    this.filenamePattern = options.filenamePattern || this.filenamePattern;
+    this.filePattern = options.filePattern || this.filePattern;
     this.segmentTime = options.segmentTime ? transformSegmentTime(options.segmentTime) : this.segmentTime;
     this.dirSizeThreshold = options.dirSizeThreshold ? transformDirSizeThreshold(options.dirSizeThreshold) : undefined;
     this.autoClear = options.autoClear || false;
@@ -176,8 +174,7 @@ export default class Recorder implements IRecorder {
             path: this.path,
             uri: this.uri,
             segmentTime: this.segmentTime,
-            directoryPattern: this.directoryPattern,
-            filenamePattern: this.filenamePattern,
+            filePattern: this.filePattern,
             dirSizeThreshold: this.dirSizeThreshold,
             autoClear: this.autoClear,
             title: this.title,
@@ -265,35 +262,23 @@ export default class Recorder implements IRecorder {
 
   private parseSegmentPath = (path: string) => {
     const date = parseSegmentDate(path);
-    const dirname = strftime(this.directoryPattern, date);
-    const filename = `${strftime(this.filenamePattern, date)}.${FILE_EXTENSION}`;
-    return {
-      dirpath: pathApi.join(this.path, dirname),
-      dirname,
-      filename,
-    };
+    const file = `${strftime(this.filePattern, date)}.${FILE_EXTENSION}`;
+    return pathApi.join(this.path, file);
   }
 
-  private ensureDirectory = async (path: string, dirname: string) => {
+  private ensureDirectory = async (path: string) => {
     if (directoryExists(path)) {
       return;
     }
     await fse.ensureDir(path, 0o777);
-    this.eventEmitter.emit(Events.DIRECTORY_CREATED, { path, name: dirname });
   }
 
   private moveSegment = async (path: string) => {
-    const { dirpath, dirname, filename } = this.parseSegmentPath(path);
-    await this.ensureDirectory(dirpath, dirname);
-    const target = `${dirpath}/${filename}`;
+    const target = this.parseSegmentPath(path);
+    const dirpath = pathApi.dirname(target);
+    await this.ensureDirectory(dirpath);
     await fse.move(path, target);
-    this.eventEmitter.emit(Events.FILE_CREATED, {
-      source: path,
-      filepath: target,
-      dirpath,
-      dirname,
-      filename,
-    });
+    this.eventEmitter.emit(Events.FILE_CREATED, target);
   }
 }
 
