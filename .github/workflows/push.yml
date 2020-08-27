@@ -1,5 +1,4 @@
 name: Lint and test
-on: [ push ]
 on:
   push:
     tags:
