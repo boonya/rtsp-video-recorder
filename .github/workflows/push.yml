@@ -2,7 +2,6 @@ name: Lint and test
 on: [ push ]
 jobs:
   test:
-    name: test
     name: test/node@${{ matrix.node }} / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
