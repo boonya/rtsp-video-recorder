@@ -3,12 +3,17 @@ on: [ push ]
 jobs:
   test:
     name: test
-    runs-on: ubuntu-latest
+    name: test/node@${{ matrix.node }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-16.04, ubuntu-18.04, ubuntu-latest]
+        node: [ 14, 12, 10, 8 ]
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@master
         with:
-          node-version: 12
+          node-version: ${{ matrix.node }}
       - run: npm ci
       - run: npm run lint:prod
       - run: npm run test
