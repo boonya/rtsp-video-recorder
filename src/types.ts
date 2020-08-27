@@ -8,8 +8,7 @@ export type SegmentStartedArg = {
 
 export type Options = Partial<{
   title: string;
-  directoryPattern: string;
-  filenamePattern: string;
+  filePattern: string;
   segmentTime: SegmentTimeOption;
   dirSizeThreshold: DirSizeThresholdOption;
   autoClear: boolean;
@@ -26,7 +25,6 @@ export enum Events {
   SEGMENT_STARTED = 'segment_started',
   FILE_CREATED = 'file_created',
   STOP = 'stop',
-  DIRECTORY_CREATED = 'directory_created',
   SPACE_WIPED = 'space_wiped',
   SPACE_FULL = 'space_full',
 }

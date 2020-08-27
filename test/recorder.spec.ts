@@ -88,8 +88,7 @@ describe('Events', () => {
       expect(onStarted).toBeCalledWith({
         uri: URI,
         path: PATH,
-        directoryPattern: '%Y.%m.%d',
-        filenamePattern: '%H.%M.%S',
+        filePattern: '%Y.%m.%d/%H.%M.%S',
         segmentTime: 600,
         autoClear: false,
         ffmpegBinary: 'ffmpeg',
@@ -103,8 +102,7 @@ describe('Events', () => {
 
       new Recorder(URI, PATH, {
         title: 'Test Cam',
-        directoryPattern: '%Y %B %d',
-        filenamePattern: '%I.%M.%S%p',
+        filePattern: '%Y %B %d/%I.%M.%S%p',
         dirSizeThreshold: '500M',
         segmentTime: '1h',
         autoClear: true,
@@ -120,8 +118,7 @@ describe('Events', () => {
         uri: URI,
         path: PATH,
         title: 'Test Cam',
-        directoryPattern: '%Y %B %d',
-        filenamePattern: '%I.%M.%S%p',
+        filePattern: '%Y %B %d/%I.%M.%S%p',
         dirSizeThreshold: 524288000,
         segmentTime: 3600,
         autoClear: true,
@@ -170,33 +167,6 @@ describe('Events', () => {
     });
   });
 
-  describe(RecorderEvents.DIRECTORY_CREATED, () => {
-    test(`Directory should be created in case of segment has to be moved into
-    but directory does not exist.`, async (done) => {
-      const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
-      const SECOND_SEGMENT = `${PATH}/2020.06.25.10.28.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
-      const onDirectoryCreated = jest.fn(() => done()).mockName('onDirectoryCreated');
-      mocked(fs).lstatSync.mockImplementation(() => {
-        throw new Error('Directory does not exist.');
-      });
-
-      new Recorder(URI, PATH)
-        .on(RecorderEvents.DIRECTORY_CREATED, onDirectoryCreated)
-        .start();
-
-      fakeProcess.stderr.emit('data', Buffer.from(`Opening '${FIRST_SEGMENT}' for writing`, 'utf8'));
-      fakeProcess.stderr.emit('data', Buffer.from(`Opening '${SECOND_SEGMENT}' for writing`, 'utf8'));
-      // https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
-      await Promise.resolve();
-
-      expect(onDirectoryCreated).toBeCalledTimes(1);
-      expect(onDirectoryCreated).toBeCalledWith({
-        path: `${PATH}/2020.06.25`,
-        name: '2020.06.25',
-      });
-    });
-  });
-
   describe(RecorderEvents.FILE_CREATED, () => {
     test('New file should be created when new segment started.', async (done) => {
       const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
@@ -214,13 +184,7 @@ describe('Events', () => {
       await Promise.resolve();
 
       expect(onFileCreated).toBeCalledTimes(1);
-      expect(onFileCreated).toBeCalledWith({
-        source: FIRST_SEGMENT,
-        dirpath: `${PATH}/2020.06.25`,
-        dirname: '2020.06.25',
-        filepath: `${PATH}/2020.06.25/10.18.04.mp4`,
-        filename: '10.18.04.mp4',
-      });
+      expect(onFileCreated).toBeCalledWith(`${PATH}/2020.06.25/10.18.04.mp4`);
     });
 
     test('If recording stopped current segment should be moved to other files.', async (done) => {
@@ -240,13 +204,7 @@ describe('Events', () => {
       await Promise.resolve();
 
       expect(onFileCreated).toBeCalledTimes(1);
-      expect(onFileCreated).toBeCalledWith({
-        source: FIRST_SEGMENT,
-        dirpath: `${PATH}/2020.06.25`,
-        dirname: '2020.06.25',
-        filepath: `${PATH}/2020.06.25/10.18.04.mp4`,
-        filename: '10.18.04.mp4',
-      });
+      expect(onFileCreated).toBeCalledWith(`${PATH}/2020.06.25/10.18.04.mp4`);
 
       done();
     });

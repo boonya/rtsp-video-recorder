@@ -19,8 +19,7 @@ try {
     TITLE,
     SEGMENT_TIME,
     THRESHOLD,
-    DIRECTORY_PATTERN,
-    FILENAME_PATTERN,
+    FILE_PATTERN,
     AUTO_CLEAR,
     DESTINATION,
   } = process.env;
@@ -33,16 +32,14 @@ try {
   const segmentTime = SEGMENT_TIME || '10m';
   const dirSizeThreshold = THRESHOLD || '500M';
   const autoClear = AUTO_CLEAR === 'true' ? true : false;
-  const directoryPattern = DIRECTORY_PATTERN || '%Y.%m.%d';
-  const filenamePattern = FILENAME_PATTERN || `%H.%M.%S-${title}`;
+  const filePattern = FILE_PATTERN || `%Y.%m.%d/%H.%M.%S-${title}`;
 
   const recorder = new Recorder(
     `rtsp://${IP}:554/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp?real_stream`, DESTINATION,
     {
       title,
       segmentTime,
-      directoryPattern,
-      filenamePattern,
+      filePattern,
       dirSizeThreshold,
       autoClear,
     },
@@ -53,7 +50,6 @@ try {
     .on(RecorderEvents.ERROR, log(RecorderEvents.ERROR))
     .on(RecorderEvents.SEGMENT_STARTED, log(RecorderEvents.SEGMENT_STARTED))
     .on(RecorderEvents.FILE_CREATED, log(RecorderEvents.FILE_CREATED))
-    .on(RecorderEvents.DIRECTORY_CREATED, log(RecorderEvents.DIRECTORY_CREATED))
     .on(RecorderEvents.STOP, log(RecorderEvents.STOP))
     // .on(RecorderEvents.PROGRESS, log(RecorderEvents.PROGRESS))
     .on(RecorderEvents.SPACE_FULL, log(RecorderEvents.SPACE_FULL))
@@ -76,7 +72,7 @@ try {
       }
     } else if (key.name === 'space') {
       if (recorder.isRecording()) {
-        recorder.stop()
+        recorder.stop();
       } else {
         recorder.start();
       }
