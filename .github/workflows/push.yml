@@ -2,7 +2,7 @@ name: Lint and test
 on: [ push ]
 jobs:
   test:
-    name: test/node@${{ matrix.node }} / ${{ matrix.os }}
+    name: Lint & test for node@${{ matrix.node }} / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -18,7 +18,7 @@ jobs:
       - run: npm run test
   coverage:
     needs: [ test ]
-    name: coverage
+    name: Sending test coverage to Code Climate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1

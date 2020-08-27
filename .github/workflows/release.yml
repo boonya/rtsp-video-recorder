@@ -3,7 +3,8 @@ on:
   release:
     types: [published]
 jobs:
-  release:
+  test:
+    name: Lint & Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -13,6 +14,16 @@ jobs:
       - run: npm ci
       - run: npm run lint:prod
       - run: npm run test:coverage
+  publish:
+    needs: [ test ]
+    name: Build & publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - run: npm ci
       - run: npm run build
       - uses: JS-DevTools/npm-publish@v1
         with:

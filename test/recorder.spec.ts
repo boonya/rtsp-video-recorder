@@ -1,5 +1,6 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import { EventEmitter } from 'events';
+import pathApi from 'path';
 import fs, { Stats } from 'fs';
 import fse from 'fs-extra';
 import du from 'du';
@@ -16,7 +17,7 @@ jest.mock('du');
 jest.mock('../src/validators');
 
 const URI = 'rtsp://username:password@host/path';
-const PATH = '/media/Recorder';
+const PATH = pathApi.normalize('/media/Recorder');
 
 type OnSpawnType = (...args: any[]) => void;
 
