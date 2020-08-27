@@ -75,11 +75,14 @@ describe('Events', () => {
   describe(RecorderEvents.STARTED, () => {
     test(`Handler receives an object that contains options applied to the current process.
     Default values if no options passed.`, (done) => {
-      const onStarted = jest.fn(() => done());
+      const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
+      const onStarted = jest.fn(() => done()).mockName('onStarted');
 
       new Recorder(URI, PATH)
         .on(RecorderEvents.STARTED, onStarted)
         .start();
+
+      fakeProcess.stderr.emit('data', Buffer.from(`Opening '${FIRST_SEGMENT}' for writing`, 'utf8'));
 
       expect(onStarted).toBeCalledTimes(1);
       expect(onStarted).toBeCalledWith({
@@ -95,7 +98,8 @@ describe('Events', () => {
 
     test(`Handler receives an object that contains options applied to the current process.
     Converted values in case of some options if passed.`, (done) => {
-      const onStarted = jest.fn(() => done());
+      const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
+      const onStarted = jest.fn(() => done()).mockName('onStarted');
 
       new Recorder(URI, PATH, {
         title: 'Test Cam',
@@ -108,6 +112,8 @@ describe('Events', () => {
       })
         .on(RecorderEvents.STARTED, onStarted)
         .start();
+
+      fakeProcess.stderr.emit('data', Buffer.from(`Opening '${FIRST_SEGMENT}' for writing`, 'utf8'));
 
       expect(onStarted).toBeCalledTimes(1);
       expect(onStarted).toBeCalledWith({
@@ -125,22 +131,9 @@ describe('Events', () => {
   });
 
   describe(RecorderEvents.STOPPED, () => {
-    test(`If stopped programmatically handler receives 0 exit code & reason message
-    that it stopped programmatically.`, (done) => {
-      const onStopped = jest.fn(() => done());
-
-      new Recorder(URI, PATH)
-        .on(RecorderEvents.STOPPED, onStopped)
-        .start()
-        .stop();
-
-      expect(onStopped).toBeCalledTimes(1);
-      expect(onStopped).toBeCalledWith(0, 'Programmatically stopped.');
-    });
-
     test(`If stop reason is FFMPEG process exited handler receives exit code of ffmpeg process
       and a messae that FFMPEG exited.`, (done) => {
-      const onStopped = jest.fn(() => done());
+      const onStopped = jest.fn(() => done()).mockName('onStopped');
 
       new Recorder(URI, PATH)
         .on(RecorderEvents.STOPPED, onStopped)
@@ -157,7 +150,7 @@ describe('Events', () => {
     test(`Event handler receives a path to current and previous segments.`, (done) => {
       const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
       const SECOND_SEGMENT = `${PATH}/2020.06.25.10.28.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
-      const onSegmentStarted = jest.fn(() => done());
+      const onSegmentStarted = jest.fn(() => done()).mockName('onSegmentStarted');
 
       new Recorder(URI, PATH)
         .on(RecorderEvents.SEGMENT_STARTED, onSegmentStarted)
@@ -182,7 +175,7 @@ describe('Events', () => {
     but directory does not exist.`, async (done) => {
       const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
       const SECOND_SEGMENT = `${PATH}/2020.06.25.10.28.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
-      const onDirectoryCreated = jest.fn(() => done());
+      const onDirectoryCreated = jest.fn(() => done()).mockName('onDirectoryCreated');
       mocked(fs).lstatSync.mockImplementation(() => {
         throw new Error('Directory does not exist.');
       });
@@ -261,6 +254,7 @@ describe('Events', () => {
 
   describe(RecorderEvents.SPACE_FULL, () => {
     test('If no space left an event should be emitted and payload raised.', async (done) => {
+      const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
       mocked(du).mockImplementation(() => 496);
       mocked(fs).readdirSync.mockImplementation(() => []);
 
@@ -270,7 +264,7 @@ describe('Events', () => {
         .on(RecorderEvents.SPACE_FULL, onSpaceFull)
         .start();
 
-      fakeProcess.stderr.emit('data', Buffer.from(`Random progress message`, 'utf8'));
+      fakeProcess.stderr.emit('data', Buffer.from(`Opening '${FIRST_SEGMENT}' for writing`, 'utf8'));
 
       // https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
       await Promise.resolve();
@@ -283,7 +277,8 @@ describe('Events', () => {
       });
     });
 
-    test('If no space enough an event won\'t be emitted.', async (done) => {
+    test('If space not enough an event won\'t be emitted.', async (done) => {
+      const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
       mocked(du).mockImplementation(() => 400);
       mocked(fs).readdirSync.mockImplementation(() => []);
 
@@ -293,7 +288,10 @@ describe('Events', () => {
         .on(RecorderEvents.SPACE_FULL, onSpaceFull)
         .start();
 
-      fakeProcess.stderr.emit('data', Buffer.from(`Random progress message`, 'utf8'));
+      fakeProcess.stderr.emit('data', Buffer.from(`Opening '${FIRST_SEGMENT}' for writing`, 'utf8'));
+
+      // https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
+      await Promise.resolve();
 
       expect(onSpaceFull).toBeCalledTimes(0);
 
@@ -303,6 +301,7 @@ describe('Events', () => {
 
   describe(RecorderEvents.SPACE_WIPED, () => {
     test('If no space left recorder directory should be wiped. The oldest directory should be removed only.', async (done) => {
+      const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
       mocked(du)
         .mockImplementationOnce(() => 500)
         .mockImplementationOnce(() => 200);
@@ -320,7 +319,7 @@ describe('Events', () => {
         .on(RecorderEvents.SPACE_WIPED, onSpaceWiped)
         .start();
 
-      fakeProcess.stderr.emit('data', Buffer.from(`Random progress message`, 'utf8'));
+      fakeProcess.stderr.emit('data', Buffer.from(`Opening '${FIRST_SEGMENT}' for writing`, 'utf8'));
 
       // https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
       await Promise.resolve();
@@ -404,6 +403,7 @@ describe('Events', () => {
       fakeProcess.stderr.emit('data', Buffer.from(`Opening '${SECOND_SEGMENT}' for writing`, 'utf8'));
       // https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
       await Promise.resolve();
+      await Promise.resolve();
 
       expect(onError).toBeCalledTimes(1);
       expect(onError).toBeCalledWith(new Error(`${PATH}/2020.06.25 exists but it is not a directory.`));
@@ -425,12 +425,14 @@ describe('Events', () => {
       fakeProcess.stderr.emit('data', Buffer.from(`Opening '${SECOND_SEGMENT}' for writing`, 'utf8'));
       // https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
       await Promise.resolve();
+      await Promise.resolve();
 
       expect(onError).toBeCalledTimes(1);
       expect(onError).toBeCalledWith(new RecorderError('Moving failed.'));
     });
 
     test('DU has failed for some reason.', async (done) => {
+      const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
       const onError = jest.fn(() => done()).mockName('onError');
       mocked(du).mockImplementation(() => {
         throw new Error('DU has failed for some reason.');
@@ -440,7 +442,7 @@ describe('Events', () => {
         .on(RecorderEvents.ERROR, onError)
         .start();
 
-      fakeProcess.stderr.emit('data', Buffer.from(`Random progress message`, 'utf8'));
+      fakeProcess.stderr.emit('data', Buffer.from(`Opening '${FIRST_SEGMENT}' for writing`, 'utf8'));
       // https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
       await Promise.resolve();
 
@@ -449,23 +451,22 @@ describe('Events', () => {
     });
 
     test('In case of can\'t remove a directory', async (done) => {
+      const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
       mocked(du).mockImplementation(() => 500);
       mocked(fs).readdirSync.mockImplementation(() => []);
-      const onError = jest.fn().mockName('onError');
+      const onError = jest.fn(() => done()).mockName('onError');
 
       new Recorder(URI, PATH, { dirSizeThreshold: 500, autoClear: true })
         .on(RecorderEvents.ERROR, onError)
         .start();
 
-      fakeProcess.stderr.emit('data', Buffer.from(`Random progress message`, 'utf8'));
+      fakeProcess.stderr.emit('data', Buffer.from(`Opening '${FIRST_SEGMENT}' for writing`, 'utf8'));
       // https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
       await Promise.resolve();
       await Promise.resolve();
 
       expect(onError).toBeCalledTimes(1);
       expect(onError).toBeCalledWith(new Error('Can\'t remove current directory.'));
-
-      done();
     });
   });
 
