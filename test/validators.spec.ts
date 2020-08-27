@@ -16,7 +16,8 @@ describe('verifyPath', () => {
   });
 
   test('Invalid', () => {
-    expect(verifyPath('./unexistant-dir')).toEqual(`${pathApi.dirname(__dirname)}/unexistant-dir is not a directory`);
+    const path = pathApi.normalize(`${pathApi.dirname(__dirname)}/unexistant-dir`);
+    expect(verifyPath('./unexistant-dir')).toEqual(`${path} is not a directory`);
     expect(verifyPath(__filename)).toEqual(`${__filename} exists but it is not a directory.`);
   });
 });

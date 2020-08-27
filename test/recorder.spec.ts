@@ -205,7 +205,8 @@ describe('Events', () => {
       await Promise.resolve();
 
       expect(onFileCreated).toBeCalledTimes(1);
-      expect(onFileCreated).toBeCalledWith(`${PATH}/2020.06.25/10.18.04.mp4`);
+      const path = pathApi.normalize(`${PATH}/2020.06.25/10.18.04.mp4`);
+      expect(onFileCreated).toBeCalledWith(path);
 
       done();
     });
@@ -227,7 +228,8 @@ describe('Events', () => {
       await Promise.resolve();
 
       expect(onFileCreated).toBeCalledTimes(1);
-      expect(onFileCreated).toBeCalledWith(`${PATH}/2020 June 25/Test Label-10.18.04AM.mp4`);
+      const path = pathApi.normalize(`${PATH}/2020 June 25/Test Label-10.18.04AM.mp4`);
+      expect(onFileCreated).toBeCalledWith(path);
 
       done();
     });
@@ -387,7 +389,8 @@ describe('Events', () => {
       await Promise.resolve();
 
       expect(onError).toBeCalledTimes(1);
-      expect(onError).toBeCalledWith(new Error(`${PATH}/2020.06.25 exists but it is not a directory.`));
+      const path = pathApi.normalize(`${PATH}/2020.06.25`);
+      expect(onError).toBeCalledWith(new Error(`${path} exists but it is not a directory.`));
     });
 
     test('In case of moving segment failed.', async (done) => {
@@ -491,7 +494,7 @@ describe('Process', () => {
         '1',
         '-strftime',
         '1',
-        `${PATH}/%Y.%m.%d.%H.%M.%S.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`,
+        pathApi.normalize(`${PATH}/%Y.%m.%d.%H.%M.%S.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`),
       ]);
       expect(options).toEqual({ detached: false });
       done();
@@ -525,7 +528,7 @@ describe('Process', () => {
         '1',
         '-strftime',
         '1',
-        `${PATH}/%Y.%m.%d.%H.%M.%S.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`,
+        pathApi.normalize(`${PATH}/%Y.%m.%d.%H.%M.%S.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`),
       ]);
       expect(options).toEqual({ detached: false });
       done();
