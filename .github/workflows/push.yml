@@ -1,7 +1,7 @@
 name: Lint and test
 on: [ push ]
 jobs:
-  push:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -10,6 +10,7 @@ jobs:
           node-version: 12
       - run: npm ci
       - run: npm run lint:prod
+      - run: npm run test
   coverage:
     needs: [ test ]
     name: coverage
@@ -19,6 +20,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12
+      - run: npm ci
       - uses: paambaati/codeclimate-action@v2.6.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE_TEST_REPORTER_ID }}
