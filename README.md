@@ -114,7 +114,7 @@ New file should be created when new segment started or in case of recording stop
 
 ```ts
 recorder.on(RecorderEvents.FILE_CREATED, (payload) => {
-  assert.equal(payload, `/media/Recorder/2020.06.25/Test Camera-10.18.04.mp4`);
+  assert.equal(payload, `/media/Recorder/2020.06.25/10.18.04.mp4`);
 });
 ```
 

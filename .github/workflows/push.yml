@@ -1,5 +1,10 @@
 name: Lint and test
-on: [ push ]
+on:
+  push:
+    tags-ignore:
+      - '*'
+    paths-ignore:
+      - '**.md'
 jobs:
   test:
     name: Lint & test for node@${{ matrix.node }} / ${{ matrix.os }}
