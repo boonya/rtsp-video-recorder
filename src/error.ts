@@ -8,7 +8,7 @@ export class RecorderError extends Error {
 
 export class RecorderValidationError extends RecorderError {
   constructor (message: string, public errors: string[] = []) {
-    super(message + ":" + errors.join(" "));
+    super(`${message}: ${errors.join(" ")}`);
     Object.setPrototypeOf(this, RecorderValidationError.prototype);
   }
 }
