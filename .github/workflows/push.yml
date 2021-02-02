@@ -1,10 +1,13 @@
 name: Lint and test
+
 on:
   push:
     tags-ignore:
       - '*'
     paths-ignore:
       - '**.md'
+  pull_request:
+  
 jobs:
   test:
     name: Lint & test for node@${{ matrix.node }} / ${{ matrix.os }}
