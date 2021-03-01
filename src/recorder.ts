@@ -171,6 +171,7 @@ export default class Recorder implements IRecorder {
             dirSizeThreshold: this.dirSizeThreshold,
             autoClear: this.autoClear,
             title: this.title,
+            noAudio: this.noAudio,
             ffmpegBinary: this.ffmpegBinary,
           });
         }

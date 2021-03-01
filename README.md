@@ -59,6 +59,7 @@ recorder.on(RecorderEvents.STARTED, (payload) => {
     uri: 'rtsp://username:password@host/path',
     path: '/media/Recorder',
     title: 'Test Camera',
+    noAudio: false,
     filePattern: '%Y.%m.%d/%H.%M.%S',
     segmentTime: 600,
     autoClear: false,

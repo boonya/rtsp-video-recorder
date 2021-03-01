@@ -52,7 +52,7 @@ beforeEach(() => {
   fakeProcess = mockSpawnProcess();
   mocked(fs).lstatSync.mockImplementation(() => ({ ...new Stats(), isDirectory: () => true }));
   mocked(fse).move.mockImplementation(() => Promise.resolve(true));
-  mocked(fse).remove.mockImplementation(() => Promise.resolve(true));
+  mocked(fse).remove.mockImplementation(() => Promise.resolve());
   mocked(fse).ensureDir.mockImplementation(() => Promise.resolve(true));
 });
 
@@ -92,6 +92,7 @@ describe('Events', () => {
         filePattern: '%Y.%m.%d/%H.%M.%S',
         segmentTime: 600,
         autoClear: false,
+        noAudio: false,
         ffmpegBinary: 'ffmpeg',
       });
     });
@@ -107,6 +108,7 @@ describe('Events', () => {
         dirSizeThreshold: '500M',
         segmentTime: '1h',
         autoClear: true,
+        noAudio: true,
         ffmpegBinary: '/bin/ffmpeg',
       })
         .on(RecorderEvents.STARTED, onStarted)
@@ -123,6 +125,7 @@ describe('Events', () => {
         dirSizeThreshold: 524288000,
         segmentTime: 3600,
         autoClear: true,
+        noAudio: true,
         ffmpegBinary: '/bin/ffmpeg',
       });
     });
@@ -294,7 +297,7 @@ describe('Events', () => {
         ...new Stats(),
         birthtimeMs: arg === `${PATH}/oldest-dir` ? Date.now() - 1000 : Date.now(),
       }));
-      mocked(fse).remove.mockImplementationOnce(() => true);
+      mocked(fse).remove.mockResolvedValue();
 
       const onSpaceWiped = jest.fn(() => done()).mockName('onSpaceWiped');
 
@@ -305,6 +308,8 @@ describe('Events', () => {
       fakeProcess.stderr.emit('data', Buffer.from(`Opening '${FIRST_SEGMENT}' for writing`, 'utf8'));
 
       // https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
+      await Promise.resolve();
+      await Promise.resolve();
       await Promise.resolve();
       await Promise.resolve();
       await Promise.resolve();
