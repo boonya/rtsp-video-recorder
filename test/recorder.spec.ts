@@ -477,23 +477,14 @@ describe('Process', () => {
     function onSpawn (command: string, args: ReadonlyArray<string>, options: object) {
       expect(command).toEqual('ffmpeg');
       expect(args).toEqual([
-        '-i',
-        URI,
-        '-an',
-        '-vcodec',
-        'copy',
-        '-rtsp_transport',
-        'tcp',
-        '-vsync',
-        '1',
-        '-f',
-        'segment',
-        '-segment_time',
-        '600',
-        '-reset_timestamps',
-        '1',
-        '-strftime',
-        '1',
+        '-rtsp_transport', 'tcp',
+        '-i', URI,
+        '-reset_timestamps', '1',
+        '-f', 'segment',
+        '-segment_time', '600',
+        '-strftime', '1',
+        '-c:v', 'copy',
+        '-c:a', 'aac',
         pathApi.normalize(`${PATH}/%Y.%m.%d.%H.%M.%S.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`),
       ]);
       expect(options).toEqual({ detached: false });
@@ -509,25 +500,15 @@ describe('Process', () => {
     function onSpawn (command: string, args: ReadonlyArray<string>, options: object) {
       expect(command).toEqual('ffmpeg');
       expect(args).toEqual([
-        '-i',
-        URI,
+        '-rtsp_transport', 'tcp',
+        '-i', URI,
+        '-reset_timestamps', '1',
+        '-f', 'segment',
+        '-segment_time', '1000',
+        '-strftime', '1',
+        '-metadata', 'title=Any video title',
+        '-c:v', 'copy',
         '-an',
-        '-vcodec',
-        'copy',
-        '-rtsp_transport',
-        'tcp',
-        '-vsync',
-        '1',
-        '-metadata',
-        'title=Any video title',
-        '-f',
-        'segment',
-        '-segment_time',
-        '1000',
-        '-reset_timestamps',
-        '1',
-        '-strftime',
-        '1',
         pathApi.normalize(`${PATH}/%Y.%m.%d.%H.%M.%S.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`),
       ]);
       expect(options).toEqual({ detached: false });
@@ -536,6 +517,6 @@ describe('Process', () => {
 
     mockSpawnProcess({ onSpawn });
 
-    new Recorder(URI, PATH, { title: 'Any video title', segmentTime: 1000 }).start();
+    new Recorder(URI, PATH, { title: 'Any video title', segmentTime: 1000, noAudio: true }).start();
   });
 });

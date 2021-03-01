@@ -51,9 +51,9 @@ try {
     .on(RecorderEvents.SEGMENT_STARTED, log(RecorderEvents.SEGMENT_STARTED))
     .on(RecorderEvents.FILE_CREATED, log(RecorderEvents.FILE_CREATED))
     .on(RecorderEvents.STOP, log(RecorderEvents.STOP))
-    // .on(RecorderEvents.PROGRESS, log(RecorderEvents.PROGRESS))
     .on(RecorderEvents.SPACE_FULL, log(RecorderEvents.SPACE_FULL))
     .on(RecorderEvents.SPACE_WIPED, log(RecorderEvents.SPACE_WIPED))
+    // .on(RecorderEvents.PROGRESS, log(RecorderEvents.PROGRESS))
     .start();
 
   process.stdin.on('keypress', (_, key) => {

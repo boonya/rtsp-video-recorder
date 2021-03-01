@@ -34,6 +34,7 @@ export default class Recorder implements IRecorder {
   private dirSizeThreshold?: number; // bytes
 
   private autoClear: boolean;
+  private noAudio: boolean;
 
   private process: ChildProcessWithoutNullStreams | null = null;
   private eventEmitter: EventEmitter;
@@ -56,6 +57,7 @@ export default class Recorder implements IRecorder {
     this.segmentTime = options.segmentTime ? transformSegmentTime(options.segmentTime) : this.segmentTime;
     this.dirSizeThreshold = options.dirSizeThreshold ? transformDirSizeThreshold(options.dirSizeThreshold) : undefined;
     this.autoClear = options.autoClear || false;
+    this.noAudio = options.noAudio || false;
 
     this.eventEmitter = new EventEmitter();
     this.uriHash = getHash(this.uri);
@@ -126,24 +128,15 @@ export default class Recorder implements IRecorder {
   private spawnFFMPEG = () => {
     const process = spawn(this.ffmpegBinary,
       [
-        '-i',
-        this.uri,
-        '-an',
-        '-vcodec',
-        'copy',
-        '-rtsp_transport',
-        'tcp',
-        '-vsync',
-        '1',
+        '-rtsp_transport', 'tcp',
+        '-i', this.uri,
+        '-reset_timestamps', '1',
+        '-f', 'segment',
+        '-segment_time', `${this.segmentTime}`,
+        '-strftime', '1',
         ...(this.title ? ['-metadata', `title=${this.title}`] : []),
-        '-f',
-        'segment',
-        '-segment_time',
-        `${this.segmentTime}`,
-        '-reset_timestamps',
-        '1',
-        '-strftime',
-        '1',
+        '-c:v', 'copy',
+        ...(this.noAudio ? ['-an'] : ['-c:a', 'aac']),
         pathApi.join(this.path, `%Y.%m.%d.%H.%M.%S.${this.uriHash}.${FILE_EXTENSION}`),
       ],
       { detached: false },
