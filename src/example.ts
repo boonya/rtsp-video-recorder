@@ -21,7 +21,9 @@ try {
     THRESHOLD,
     FILE_PATTERN,
     AUTO_CLEAR,
+    NO_AUDIO,
     DESTINATION,
+    SHOW_PROGRESS,
   } = process.env;
 
   if (!IP || !DESTINATION) {
@@ -32,6 +34,7 @@ try {
   const segmentTime = SEGMENT_TIME || '10m';
   const dirSizeThreshold = THRESHOLD || '500M';
   const autoClear = AUTO_CLEAR === 'true' ? true : false;
+  const noAudio = NO_AUDIO === 'true' ? true : false;
   const filePattern = FILE_PATTERN || `%Y.%m.%d/%H.%M.%S-${title}`;
 
   const recorder = new Recorder(
@@ -42,8 +45,13 @@ try {
       filePattern,
       dirSizeThreshold,
       autoClear,
+      noAudio,
     },
   );
+
+  if (SHOW_PROGRESS) {
+    recorder.on(RecorderEvents.PROGRESS, log(RecorderEvents.PROGRESS));
+  }
 
   recorder.on(RecorderEvents.STARTED, log(RecorderEvents.STARTED))
     .on(RecorderEvents.STOPPED, log(RecorderEvents.STOPPED))
@@ -53,7 +61,6 @@ try {
     .on(RecorderEvents.STOP, log(RecorderEvents.STOP))
     .on(RecorderEvents.SPACE_FULL, log(RecorderEvents.SPACE_FULL))
     .on(RecorderEvents.SPACE_WIPED, log(RecorderEvents.SPACE_WIPED))
-    // .on(RecorderEvents.PROGRESS, log(RecorderEvents.PROGRESS))
     .start();
 
   process.stdin.on('keypress', (_, key) => {
