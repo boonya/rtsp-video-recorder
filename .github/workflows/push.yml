@@ -7,15 +7,15 @@ on:
     paths-ignore:
       - '**.md'
   pull_request:
-  
+
 jobs:
   test:
     name: Lint & test for node@${{ matrix.node }} / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest, ubuntu-18.04, ubuntu-16.04 ]
-        node: [ 14, 12, 10 ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        node: [ 14, 12 ]
     steps:
       - uses: actions/checkout@master
       - uses: actions/setup-node@master

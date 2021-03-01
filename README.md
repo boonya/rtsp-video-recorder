@@ -59,6 +59,7 @@ recorder.on(RecorderEvents.STARTED, (payload) => {
     uri: 'rtsp://username:password@host/path',
     path: '/media/Recorder',
     title: 'Test Camera',
+    noAudio: false,
     filePattern: '%Y.%m.%d/%H.%M.%S',
     segmentTime: 600,
     autoClear: false,
@@ -220,6 +221,10 @@ It can be a number of seconds or string xs, xm or xh what means amount of second
 ### title
 
 Title of video file. Used as metadata of video file.
+
+### noAudio
+
+By default the process is going to record audio stream into a file but in case you don't want to you can pass `true` to this option. Note that audio stream is encoded using ACC.
 
 ### dirSizeThreshold
 

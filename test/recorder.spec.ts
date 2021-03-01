@@ -52,7 +52,7 @@ beforeEach(() => {
   fakeProcess = mockSpawnProcess();
   mocked(fs).lstatSync.mockImplementation(() => ({ ...new Stats(), isDirectory: () => true }));
   mocked(fse).move.mockImplementation(() => Promise.resolve(true));
-  mocked(fse).remove.mockImplementation(() => Promise.resolve(true));
+  mocked(fse).remove.mockImplementation(() => Promise.resolve());
   mocked(fse).ensureDir.mockImplementation(() => Promise.resolve(true));
 });
 
@@ -92,6 +92,7 @@ describe('Events', () => {
         filePattern: '%Y.%m.%d/%H.%M.%S',
         segmentTime: 600,
         autoClear: false,
+        noAudio: false,
         ffmpegBinary: 'ffmpeg',
       });
     });
@@ -107,6 +108,7 @@ describe('Events', () => {
         dirSizeThreshold: '500M',
         segmentTime: '1h',
         autoClear: true,
+        noAudio: true,
         ffmpegBinary: '/bin/ffmpeg',
       })
         .on(RecorderEvents.STARTED, onStarted)
@@ -123,6 +125,7 @@ describe('Events', () => {
         dirSizeThreshold: 524288000,
         segmentTime: 3600,
         autoClear: true,
+        noAudio: true,
         ffmpegBinary: '/bin/ffmpeg',
       });
     });
@@ -294,7 +297,7 @@ describe('Events', () => {
         ...new Stats(),
         birthtimeMs: arg === `${PATH}/oldest-dir` ? Date.now() - 1000 : Date.now(),
       }));
-      mocked(fse).remove.mockImplementationOnce(() => true);
+      mocked(fse).remove.mockResolvedValue();
 
       const onSpaceWiped = jest.fn(() => done()).mockName('onSpaceWiped');
 
@@ -305,6 +308,8 @@ describe('Events', () => {
       fakeProcess.stderr.emit('data', Buffer.from(`Opening '${FIRST_SEGMENT}' for writing`, 'utf8'));
 
       // https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
+      await Promise.resolve();
+      await Promise.resolve();
       await Promise.resolve();
       await Promise.resolve();
       await Promise.resolve();
@@ -477,23 +482,14 @@ describe('Process', () => {
     function onSpawn (command: string, args: ReadonlyArray<string>, options: object) {
       expect(command).toEqual('ffmpeg');
       expect(args).toEqual([
-        '-i',
-        URI,
-        '-an',
-        '-vcodec',
-        'copy',
-        '-rtsp_transport',
-        'tcp',
-        '-vsync',
-        '1',
-        '-f',
-        'segment',
-        '-segment_time',
-        '600',
-        '-reset_timestamps',
-        '1',
-        '-strftime',
-        '1',
+        '-rtsp_transport', 'tcp',
+        '-i', URI,
+        '-reset_timestamps', '1',
+        '-f', 'segment',
+        '-segment_time', '600',
+        '-strftime', '1',
+        '-c:v', 'copy',
+        '-c:a', 'aac',
         pathApi.normalize(`${PATH}/%Y.%m.%d.%H.%M.%S.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`),
       ]);
       expect(options).toEqual({ detached: false });
@@ -509,25 +505,15 @@ describe('Process', () => {
     function onSpawn (command: string, args: ReadonlyArray<string>, options: object) {
       expect(command).toEqual('ffmpeg');
       expect(args).toEqual([
-        '-i',
-        URI,
+        '-rtsp_transport', 'tcp',
+        '-i', URI,
+        '-reset_timestamps', '1',
+        '-f', 'segment',
+        '-segment_time', '1000',
+        '-strftime', '1',
+        '-metadata', 'title=Any video title',
+        '-c:v', 'copy',
         '-an',
-        '-vcodec',
-        'copy',
-        '-rtsp_transport',
-        'tcp',
-        '-vsync',
-        '1',
-        '-metadata',
-        'title=Any video title',
-        '-f',
-        'segment',
-        '-segment_time',
-        '1000',
-        '-reset_timestamps',
-        '1',
-        '-strftime',
-        '1',
         pathApi.normalize(`${PATH}/%Y.%m.%d.%H.%M.%S.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`),
       ]);
       expect(options).toEqual({ detached: false });
@@ -536,6 +522,6 @@ describe('Process', () => {
 
     mockSpawnProcess({ onSpawn });
 
-    new Recorder(URI, PATH, { title: 'Any video title', segmentTime: 1000 }).start();
+    new Recorder(URI, PATH, { title: 'Any video title', segmentTime: 1000, noAudio: true }).start();
   });
 });
