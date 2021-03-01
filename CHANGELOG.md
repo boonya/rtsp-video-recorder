@@ -11,3 +11,5 @@ All notable changes to this project should be documented in this file.
 ### Changed
 
 - All dependencies up to date.
+
+[1.4.0-alpha.2]: https://github.com/boonya/rtsp-video-recorder/releases/tag/1.4.0-alpha.2

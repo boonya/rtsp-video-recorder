@@ -224,7 +224,7 @@ Title of video file. Used as metadata of video file.
 
 ### noAudio
 
-By default the process is going to record audio stream into a file but in case you don't want to you can pass `true` to this option. Note that audio stream is encoded using ACC.
+By default the process is going to record audio stream into a file but in case you don't want to, you can pass `true` to this option. Note that audio stream is encoded using ACC.
 
 ### dirSizeThreshold
 
