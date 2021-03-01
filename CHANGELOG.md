@@ -12,4 +12,11 @@ All notable changes to this project should be documented in this file.
 
 - All dependencies up to date.
 
+## [1.3.1-alpha.2]
+
+### Changed
+
+- `RecorderValidationError` throws an errors list in addition to just a message.
+
 [1.4.0-alpha.2]: https://github.com/boonya/rtsp-video-recorder/compare/1.3.1-alpha.2...1.4.0-alpha.2
+[1.3.1-alpha.2]: https://github.com/boonya/rtsp-video-recorder/compare/1.3.1-alpha.1...1.3.1-alpha.2
