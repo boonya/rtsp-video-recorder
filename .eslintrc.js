@@ -12,13 +12,13 @@ module.exports = {
 		'plugin:@typescript-eslint/recommended',
 	],
 	parserOptions: {
-		ecmaVersion: 6,
+		ecmaVersion: 2020,
 		sourceType: 'module',
 		project: './tsconfig.eslint.json',
 	},
 	rules: {
 		'no-console': ['warn'],
-		'linebreak-style': ['error', 'unix'],
+		'linebreak-style': ['warn', 'unix'],
 		indent: ['error', 'tab'],
 		quotes: ['error', 'single'],
 		semi: ['error', 'always'],
