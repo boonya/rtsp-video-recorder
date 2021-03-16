@@ -34,7 +34,7 @@ jobs:
       - run: npm ci
       - run: npm run test
   coverage:
-    needs: [ lint, test ]
+    needs: [ test ]
     name: Sending test coverage to Code Climate
     runs-on: ubuntu-latest
     steps:
