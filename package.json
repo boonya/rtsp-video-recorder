@@ -1,6 +1,6 @@
 {
   "name": "rtsp-video-recorder",
-  "version": "1.4.0-alpha.2",
+  "version": "1.4.0-alpha.3",
   "description": "Provide an API to record rtsp video stream to filesystem.",
   "main": "dist/recorder.js",
   "types": "dist/recorder.d.ts",

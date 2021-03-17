@@ -1,5 +1,6 @@
+/* eslint-disable no-console */
 import readline from 'readline';
-import Recorder, { RecorderEvents } from './recorder';
+import Recorder, { RecorderEvents } from './src/recorder';
 
 const log = (event: string) => (...args: unknown[]) => {
 	console.log(new Date().toString());

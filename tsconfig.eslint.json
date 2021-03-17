@@ -5,6 +5,7 @@
 		"jest.config.js",
 		"src/.eslintrc.js",
 		"src/**/*.ts",
+		"example.ts",
 		"test/**/*.ts",
 	]
 }

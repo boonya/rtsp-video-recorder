@@ -61,7 +61,7 @@ export default class Recorder implements IRecorder {
 		this.uriHash = getHash(this.uri);
 	}
 
-	public start = () => {
+	public start = (): this => {
 		try {
 			this.startRecord();
 		} catch (err) {
@@ -70,24 +70,24 @@ export default class Recorder implements IRecorder {
 		return this;
 	}
 
-	public stop = () => {
+	public stop = (): this => {
 		this.stopRecord().catch((err) => {
 			this.eventEmitter.emit(Events.ERROR, err);
 		});
 		return this;
 	}
 
-	public on = (event: Events, callback: EventCallback) => {
+	public on = (event: Events, callback: EventCallback): this => {
 		this.eventEmitter.on(event, callback);
 		return this;
 	}
 
-	public removeListener = (event: Events, callback: EventCallback) => {
+	public removeListener = (event: Events, callback: EventCallback): this => {
 		this.eventEmitter.removeListener(event, callback);
 		return this;
 	}
 
-	public isRecording = () => Boolean(this.process);
+	public isRecording = (): boolean => Boolean(this.process);
 
 	private startRecord = () => {
 		if (this.process) {

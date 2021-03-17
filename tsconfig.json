@@ -7,6 +7,6 @@
 		"sourceMap": true,
 		"removeComments": true,
 	},
-	"include": ["src/**/*.ts"],
+	"include": ["src/**/*.ts", "example.ts"],
 	"exclude": ["node_modues", "dist", "coverage"]
 }
