@@ -27,7 +27,8 @@ try {
 	} = process.env;
 
 	if (!IP || !DESTINATION) {
-		throw new Error('You have to specify at least IP & DESTINATION.');
+		console.warn('Error: You have to specify at least IP & DESTINATION.');
+		process.exit(1);
 	}
 
 	const title = TITLE || 'Example cam';
@@ -89,4 +90,5 @@ try {
 	console.log();
 } catch (err) {
 	console.error(err);
+	process.exit(1);
 }
