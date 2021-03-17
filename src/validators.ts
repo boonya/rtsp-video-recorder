@@ -6,7 +6,7 @@ import { directoryExists, transformSegmentTime, transformDirSizeThreshold } from
 /**
  * @return false or string
  */
-export const verifyPath = (value: string) => {
+export const verifyPath = (value: string): false|string => {
 	try {
 		const path = pathApi.resolve(value);
 		if (!directoryExists(path)) {
@@ -21,7 +21,7 @@ export const verifyPath = (value: string) => {
 /**
  * @return false or string
  */
-export const verifySegmentTime = (value: SegmentTimeOption) => {
+export const verifySegmentTime = (value: SegmentTimeOption): false|string => {
 	if (typeof value === 'number') {
 		const error = verifySegmentTimeMinimum(value);
 		if (error) {
@@ -47,7 +47,7 @@ export const verifySegmentTime = (value: SegmentTimeOption) => {
 /**
  * @return false or string
  */
-export const verifyDirSizeThreshold = (value: DirSizeThresholdOption) => {
+export const verifyDirSizeThreshold = (value: DirSizeThresholdOption): false|string => {
 	if (typeof value === 'number') {
 		const error = verifyDirSizeThresholdMinimum(value);
 		if (error) {
@@ -73,7 +73,7 @@ export const verifyDirSizeThreshold = (value: DirSizeThresholdOption) => {
 /**
  * @return false or string
  */
-export const verifyDirSizeThresholdMinimum = (value: number) => {
+export const verifyDirSizeThresholdMinimum = (value: number): false|string => {
 	return value < 200 * Math.pow(1024, 2)
     && 'There is no sence to set dirSizeThreshold value to less that 200 MB.';
 };
@@ -81,12 +81,12 @@ export const verifyDirSizeThresholdMinimum = (value: number) => {
 /**
  * @returns false or string
  */
-export const verifySegmentTimeMinimum = (value: number) => {
+export const verifySegmentTimeMinimum = (value: number): false|string => {
 	return value < 15
     && 'There is no sence to set duration value to less than 15 seconds.';
 };
 
-export const verifyAllOptions = (path: string, { segmentTime, dirSizeThreshold }: Options) => {
+export const verifyAllOptions = (path: string, { segmentTime, dirSizeThreshold }: Options): string[] => {
 	const errors: string[] = [];
 
 	const pathError = verifyPath(path);

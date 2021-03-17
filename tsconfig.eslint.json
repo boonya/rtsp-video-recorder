@@ -4,7 +4,13 @@
 		".eslintrc.js",
 		"jest.config.js",
 		"src/.eslintrc.js",
+		"example.ts",
 		"src/**/*.ts",
 		"test/**/*.ts",
+	],
+	"exclude": [
+		"node_modues",
+		"dist",
+		"coverage",
 	]
 }

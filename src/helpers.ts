@@ -9,19 +9,19 @@ const SEGMENT_TIME_PATTERN = /^(\d+)(s|m|h)?$/;
 
 const DIR_SIZE_THRESHOLD_PATTERN = /^(\d+)(M|G|T)?$/;
 
-export const transformDirSizeThreshold = (value: DirSizeThresholdOption) => {
+export const transformDirSizeThreshold = (value: DirSizeThresholdOption): number => {
 	if (typeof value === 'number') return value;
 	const [operand, factor] = matchDirSizeThreshold(value);
 	return getBytesSize(operand, factor);
 };
 
-export const transformSegmentTime = (value: SegmentTimeOption) => {
+export const transformSegmentTime = (value: SegmentTimeOption): number => {
 	if (typeof value === 'number') return value;
 	const [operand, factor] = matchSegmentTime(value);
 	return getDuration(operand, factor);
 };
 
-export const directoryExists = (path: string) => {
+export const directoryExists = (path: string): boolean => {
 	let stats: fs.Stats;
 	try {
 		stats = fs.lstatSync(path);
@@ -34,7 +34,7 @@ export const directoryExists = (path: string) => {
 	return true;
 };
 
-export const clearSpace = async (root: string) => {
+export const clearSpace = async (root: string): Promise<void> => {
 	const listing = fs.readdirSync(root).map((i) => pathApi.join(root, i));
 	if (listing.length < 2) {
 		throw new Error('Can\'t remove current directory.');
@@ -43,7 +43,7 @@ export const clearSpace = async (root: string) => {
 	await fse.remove(path);
 };
 
-export const getOldestObject = (listing: string[]) => {
+export const getOldestObject = (listing: string[]): string => {
 	const result = listing.map((path) => {
 		try {
 			return {
@@ -79,7 +79,7 @@ export const matchDirSizeThreshold = (value: string): [number, BytesFactor] => {
 /**
  * @returns bytes
  */
-export const getBytesSize = (operand: number, factor: BytesFactor) => {
+export const getBytesSize = (operand: number, factor: BytesFactor): number => {
 	switch (factor) {
 	case BytesFactor.Gigabytes:
 		return operand * Math.pow(1024, 3);
@@ -105,11 +105,11 @@ export const matchSegmentTime = (value: string): [number, DurationFactor] => {
 	return [operand, factor];
 };
 
-export const getHash = (value: string) => {
+export const getHash = (value: string): string => {
 	return createHash('md5').update(value).digest('hex');
 };
 
-export const parseSegmentDate = (path: string) => {
+export const parseSegmentDate = (path: string): Date => {
 	const [year, month, day, hour, minute, second] = pathApi.basename(path).split('.', 6).map(Number);
 	return new Date(year, month - 1, day, hour, minute, second);
 };
@@ -117,7 +117,7 @@ export const parseSegmentDate = (path: string) => {
 /**
  * @returns seconds
  */
-export const getDuration = (operand: number, factor: DurationFactor) => {
+export const getDuration = (operand: number, factor: DurationFactor): number => {
 	switch (factor) {
 	case DurationFactor.Minutes:
 		return operand * 60;

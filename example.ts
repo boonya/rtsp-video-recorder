@@ -1,5 +1,6 @@
+/* eslint-disable no-console */
 import readline from 'readline';
-import Recorder, { RecorderEvents } from './recorder';
+import Recorder, { RecorderEvents } from './src/recorder';
 
 const log = (event: string) => (...args: unknown[]) => {
 	console.log(new Date().toString());
@@ -26,7 +27,8 @@ try {
 	} = process.env;
 
 	if (!IP || !DESTINATION) {
-		throw new Error('You have to specify at least IP & DESTINATION.');
+		console.warn('Error: You have to specify at least IP & DESTINATION.');
+		process.exit(1);
 	}
 
 	const title = TITLE || 'Example cam';
@@ -88,4 +90,5 @@ try {
 	console.log();
 } catch (err) {
 	console.error(err);
+	process.exit(1);
 }
