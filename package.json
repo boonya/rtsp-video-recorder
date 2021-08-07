@@ -28,7 +28,7 @@
   "license": "MIT",
   "dependencies": {
     "du": "^1.0.0",
-    "fs-extra": "^9.1.0",
+    "fs-extra": "^10.0.0",
     "strftime": "^0.10.0"
   },
   "devDependencies": {
