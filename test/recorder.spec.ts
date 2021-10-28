@@ -186,7 +186,7 @@ describe('Events', () => {
 			await Promise.resolve();
 
 			expect(onFileCreated).toBeCalledTimes(1);
-			expect(onFileCreated).toBeCalledWith(`${PATH}/2020.06.25/10.18.04.mp4`);
+			expect(onFileCreated).toBeCalledWith(pathApi.join(PATH, '2020.06.25', '10.18.04.mp4'));
 		});
 
 		test('If recording stopped current segment should be moved to other files.', async () => {
