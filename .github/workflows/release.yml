@@ -2,7 +2,7 @@ name: Lint, test, build and publish
 
 on:
   release:
-    types: [released]
+    types: [published]
 
 jobs:
   lint:
