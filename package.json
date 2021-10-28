@@ -14,7 +14,9 @@
   },
   "scripts": {
     "example": "tsc -p tsconfig.example.json && node example/example.js",
-    "lint": "eslint .",
+    "types-check": "tsc --noemit",
+    "eslint": "eslint .",
+    "lint": "npm run types-check && npm run eslint --",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "build": "tsc"
@@ -43,8 +45,8 @@
     "@typescript-eslint/eslint-plugin": "^5.2.0",
     "@typescript-eslint/parser": "^5.2.0",
     "eslint": "^8.1.0",
-	"jest": "^27.3.1",
-	"ts-jest": "^27.0.7",
+    "jest": "^27.3.1",
+    "ts-jest": "^27.0.7",
     "typescript": "^4.4.4"
   }
 }
