@@ -14,9 +14,9 @@
   },
   "scripts": {
     "example": "tsc -p tsconfig.example.json && node example/example.js",
-    "types-check": "tsc --noemit",
+    "types": "tsc --noemit",
     "eslint": "eslint .",
-    "lint": "npm run types-check && npm run eslint --",
+    "lint": "npm run types && npm run eslint --",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "build": "tsc"

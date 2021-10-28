@@ -1,4 +1,4 @@
-name: Lint and test
+name: Linting, types checking, testing
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
 
 jobs:
   lint:
-    name: Lint
+    name: Linting
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -20,9 +20,21 @@ jobs:
         with:
           node-version: 16
       - run: npm ci
-      - run: npm run lint
+      - run: npm run eslint
+
+  types:
+    name: Type checking
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - run: npm ci
+      - run: npm run types
+
   test:
-    name: Test node@${{ matrix.node }} / ${{ matrix.os }}
+    name: Testing node@${{ matrix.node }} / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -35,6 +47,7 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: npm ci
       - run: npm run test
+
   coverage:
     needs: [ test ]
     name: Sending test coverage to Code Climate
