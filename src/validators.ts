@@ -3,6 +3,10 @@ import pathApi from 'path';
 import { Options, SegmentTimeOption, DirSizeThresholdOption } from './types';
 import { directoryExists, transformSegmentTime, transformDirSizeThreshold } from './helpers';
 
+function getErrorMessage(err: unknown) {
+	return err instanceof Error ? err?.message : 'Something went wrong';
+}
+
 /**
  * @return false or string
  */
@@ -13,7 +17,7 @@ export const verifyPath = (value: string): false|string => {
 			return `${path} is not a directory`;
 		}
 	} catch (err) {
-		return err.message;
+		return getErrorMessage(err);
 	}
 	return false;
 };
@@ -36,8 +40,8 @@ export const verifySegmentTime = (value: SegmentTimeOption): false|string => {
 			if (error) {
 				return error;
 			}
-		} catch (e) {
-			return e.message;
+		} catch (err) {
+			return getErrorMessage(err);
 		}
 	}
 
@@ -62,8 +66,8 @@ export const verifyDirSizeThreshold = (value: DirSizeThresholdOption): false|str
 			if (error) {
 				return error;
 			}
-		} catch (e) {
-			return e.message;
+		} catch (err) {
+			return getErrorMessage(err);
 		}
 	}
 
@@ -75,7 +79,7 @@ export const verifyDirSizeThreshold = (value: DirSizeThresholdOption): false|str
  */
 export const verifyDirSizeThresholdMinimum = (value: number): false|string => {
 	return value < 200 * Math.pow(1024, 2)
-    && 'There is no sence to set dirSizeThreshold value to less that 200 MB.';
+    && 'There is no sense to set dirSizeThreshold value to less that 200 MB.';
 };
 
 /**
@@ -83,7 +87,7 @@ export const verifyDirSizeThresholdMinimum = (value: number): false|string => {
  */
 export const verifySegmentTimeMinimum = (value: number): false|string => {
 	return value < 15
-    && 'There is no sence to set duration value to less than 15 seconds.';
+    && 'There is no sense to set duration value to less than 15 seconds.';
 };
 
 export const verifyAllOptions = (path: string, { segmentTime, dirSizeThreshold }: Options): string[] => {

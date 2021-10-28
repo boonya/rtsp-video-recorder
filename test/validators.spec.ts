@@ -31,8 +31,8 @@ describe('verifySegmentTime', () => {
 	});
 
 	test('Invalid', () => {
-		expect(verifySegmentTime(1)).toEqual('There is no sence to set duration value to less than 15 seconds.');
-		expect(verifySegmentTime('1s')).toEqual('There is no sence to set duration value to less than 15 seconds.');
+		expect(verifySegmentTime(1)).toEqual('There is no sense to set duration value to less than 15 seconds.');
+		expect(verifySegmentTime('1s')).toEqual('There is no sense to set duration value to less than 15 seconds.');
 		expect(verifySegmentTime('0.1m')).toEqual('segmentTime value has to match to pattern /^(\\d+)(s|m|h)?$/.');
 		expect(verifySegmentTime('invalid value')).toEqual('segmentTime value has to match to pattern /^(\\d+)(s|m|h)?$/.');
 	});
@@ -47,8 +47,8 @@ describe('verifyDirSizeThreshold', () => {
 	});
 
 	test('Invalid', () => {
-		expect(verifyDirSizeThreshold(199 * Math.pow(1024, 2))).toEqual('There is no sence to set dirSizeThreshold value to less that 200 MB.');
-		expect(verifyDirSizeThreshold('199M')).toEqual('There is no sence to set dirSizeThreshold value to less that 200 MB.');
+		expect(verifyDirSizeThreshold(199 * Math.pow(1024, 2))).toEqual('There is no sense to set dirSizeThreshold value to less that 200 MB.');
+		expect(verifyDirSizeThreshold('199M')).toEqual('There is no sense to set dirSizeThreshold value to less that 200 MB.');
 		expect(verifyDirSizeThreshold('0.1T')).toEqual('dirSizeThreshold value has to match to pattern /^(\\d+)(M|G|T)?$/.');
 		expect(verifyDirSizeThreshold('invalid value')).toEqual('dirSizeThreshold value has to match to pattern /^(\\d+)(M|G|T)?$/.');
 	});
@@ -57,19 +57,19 @@ describe('verifyDirSizeThreshold', () => {
 test('verifyDirSizeThresholdMinimum', () => {
 	expect(verifyDirSizeThresholdMinimum(200 * Math.pow(1024, 2))).toBeFalsy();
 	expect(verifyDirSizeThresholdMinimum(199 * Math.pow(1024, 2)))
-		.toEqual('There is no sence to set dirSizeThreshold value to less that 200 MB.');
+		.toEqual('There is no sense to set dirSizeThreshold value to less that 200 MB.');
 });
 
 test('verifySegmentTimeMinimum', () => {
 	expect(verifySegmentTimeMinimum(15)).toBeFalsy();
 	expect(verifySegmentTimeMinimum(14))
-		.toEqual('There is no sence to set duration value to less than 15 seconds.');
+		.toEqual('There is no sense to set duration value to less than 15 seconds.');
 });
 
 test('verifyAllOptions', () => {
 	expect(verifyAllOptions(__filename, { segmentTime: 1, dirSizeThreshold: 1 })).toEqual([
 		`${__filename} exists but it is not a directory.`,
-		'There is no sence to set duration value to less than 15 seconds.',
-		'There is no sence to set dirSizeThreshold value to less that 200 MB.',
+		'There is no sense to set duration value to less than 15 seconds.',
+		'There is no sense to set dirSizeThreshold value to less that 200 MB.',
 	]);
 });
