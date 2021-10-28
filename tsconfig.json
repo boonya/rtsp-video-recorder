@@ -1,5 +1,5 @@
 {
-	"extends": "@tsconfig/node14/tsconfig.json",
+	"extends": "@tsconfig/node16/tsconfig.json",
 	"compilerOptions": {
 		"outDir": "dist",
 		"declaration": true,
@@ -11,7 +11,7 @@
 		"src/**/*.ts",
 	],
 	"exclude": [
-		"node_modues",
+		"node_modules",
 		"dist",
 		"coverage",
 	]

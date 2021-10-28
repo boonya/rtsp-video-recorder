@@ -9,7 +9,7 @@
 		"test/**/*.ts",
 	],
 	"exclude": [
-		"node_modues",
+		"node_modules",
 		"dist",
 		"coverage",
 	]
