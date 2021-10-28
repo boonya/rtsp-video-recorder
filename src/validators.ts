@@ -4,7 +4,9 @@ import { Options, SegmentTimeOption, DirSizeThresholdOption } from './types';
 import { directoryExists, transformSegmentTime, transformDirSizeThreshold } from './helpers';
 
 function getErrorMessage(err: unknown) {
-	return err instanceof Error ? err?.message : 'Something went wrong';
+	return err instanceof Error
+		&& err.message
+		|| 'Something went wrong';
 }
 
 /**
