@@ -1,7 +1,9 @@
 name: Lint, test, build and publish
+
 on:
   release:
-    types: [ published ]
+    types: [released]
+
 jobs:
   lint:
     name: Lint
@@ -10,7 +12,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 15
+          node-version: 16
       - run: npm ci
       - run: npm run lint
   test:
@@ -20,7 +22,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 15
+          node-version: 16
       - run: npm ci
       - run: npm run test:coverage
   publish:
@@ -31,7 +33,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 15
+          node-version: 16
       - run: npm ci
       - run: npm run build
       - uses: JS-DevTools/npm-publish@v1
