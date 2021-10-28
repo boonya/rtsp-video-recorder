@@ -68,24 +68,24 @@ export default class Recorder implements IRecorder {
 			this.eventEmitter.emit(Events.ERROR, err);
 		}
 		return this;
-	}
+	};
 
 	public stop = (): this => {
 		this.stopRecord().catch((err) => {
 			this.eventEmitter.emit(Events.ERROR, err);
 		});
 		return this;
-	}
+	};
 
 	public on = (event: Events, callback: EventCallback): this => {
 		this.eventEmitter.on(event, callback);
 		return this;
-	}
+	};
 
 	public removeListener = (event: Events, callback: EventCallback): this => {
 		this.eventEmitter.removeListener(event, callback);
 		return this;
-	}
+	};
 
 	public isRecording = (): boolean => Boolean(this.process);
 
@@ -100,7 +100,7 @@ export default class Recorder implements IRecorder {
 		this.eventEmitter.on(Events.STOP, this.stopRecord);
 
 		this.process = this.spawnFFMPEG();
-	}
+	};
 
 	private stopRecord = async () => {
 		if (!this.process) {
@@ -121,7 +121,7 @@ export default class Recorder implements IRecorder {
 		this.eventEmitter.removeListener(Events.SEGMENT_STARTED, this.onSegmentStarted);
 		this.eventEmitter.removeListener(Events.SPACE_FULL, this.onSpaceFull);
 		this.eventEmitter.removeListener(Events.STOP, this.stopRecord);
-	}
+	};
 
 	private spawnFFMPEG = () => {
 		const process = spawn(this.ffmpegBinary,
@@ -154,7 +154,7 @@ export default class Recorder implements IRecorder {
 		});
 
 		return process;
-	}
+	};
 
 	private onProgress = (message: string) => {
 		try {
@@ -183,7 +183,7 @@ export default class Recorder implements IRecorder {
 			this.eventEmitter.emit(Events.ERROR, err);
 			this.eventEmitter.emit(Events.STOP, 'Error', err);
 		}
-	}
+	};
 
 	private onSegmentStarted = async ({ previous }: SegmentStartedArg) => {
 		try {
@@ -194,7 +194,7 @@ export default class Recorder implements IRecorder {
 		} catch (err) {
 			this.eventEmitter.emit(Events.ERROR, err);
 		}
-	}
+	};
 
 	private onSpaceFull = async () => {
 		try {
@@ -216,7 +216,7 @@ export default class Recorder implements IRecorder {
 			this.eventEmitter.emit(Events.ERROR, err);
 			this.eventEmitter.emit(Events.STOP, 'Error', err);
 		}
-	}
+	};
 
 	private ensureSpaceEnough = async () => {
 		if (!this.dirSizeThreshold) {
@@ -234,7 +234,7 @@ export default class Recorder implements IRecorder {
 			return false;
 		}
 		return true;
-	}
+	};
 
 	private handleProgressBuffer = (message: string) => {
 		const openingPattern = new RegExp('Opening \'(.+)\' for writing');
@@ -252,20 +252,20 @@ export default class Recorder implements IRecorder {
 		}
 
 		return;
-	}
+	};
 
 	private parseSegmentPath = (path: string) => {
 		const date = parseSegmentDate(path);
 		const file = `${strftime(this.filePattern, date)}.${FILE_EXTENSION}`;
 		return pathApi.join(this.path, file);
-	}
+	};
 
 	private ensureDirectory = async (path: string) => {
 		if (directoryExists(path)) {
 			return;
 		}
 		await fse.ensureDir(path, 0o777);
-	}
+	};
 
 	private moveSegment = async (path: string) => {
 		const target = this.parseSegmentPath(path);
@@ -273,5 +273,5 @@ export default class Recorder implements IRecorder {
 		await this.ensureDirectory(dirpath);
 		await fse.move(path, target);
 		this.eventEmitter.emit(Events.FILE_CREATED, target);
-	}
+	};
 }
