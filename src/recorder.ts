@@ -10,10 +10,8 @@ import { verifyAllOptions } from './validators';
 import {
 	transformSegmentTime,
 	transformDirSizeThreshold,
-	getHash,
 	clearSpace,
-	parseSegmentDate,
-	directoryExists,
+	ensureDirectory,
 	parseProgressBuffer,
 } from './helpers';
 
@@ -41,7 +39,6 @@ export default class Recorder implements IRecorder {
 
 	private process: ChildProcessWithoutNullStreams | null = null;
 	private eventEmitter: EventEmitter;
-	private uriHash?: string;
 	private previousSegment?: string;
 
 	constructor (private uri: string, private path: string, options: Options = {}) {
@@ -59,16 +56,18 @@ export default class Recorder implements IRecorder {
 		this.noAudio = options.noAudio || false;
 
 		this.eventEmitter = new EventEmitter();
-		// TODO: Consider to remove in favour of file prefix ".~"
-		this.uriHash = getHash(this.uri);
 	}
 
 	public start = (): this => {
-		try {
-			this.startRecord();
-		} catch (err) {
-			this.eventEmitter.emit(Events.ERROR, err);
+		if (this.process) {
+			this.eventEmitter.emit(Events.ERROR, new RecorderError('Process already spawned.'));
+			return this;
 		}
+
+		this.startRecord().catch((err) => {
+			this.eventEmitter.emit(Events.ERROR, err);
+		});
+
 		return this;
 	};
 
@@ -91,17 +90,13 @@ export default class Recorder implements IRecorder {
 
 	public isRecording = (): boolean => Boolean(this.process);
 
-	private startRecord = () => {
-		if (this.process) {
-			throw new RecorderError('Process already spawned.');
-		}
-
+	private startRecord = async () => {
 		this.eventEmitter.on(Events.PROGRESS, this.onProgress);
 		this.eventEmitter.on(Events.SEGMENT_STARTED, this.onSegmentStarted);
 		this.eventEmitter.on(Events.SPACE_FULL, this.onSpaceFull);
 		this.eventEmitter.on(Events.STOP, this.stopRecord);
 
-		this.process = this.spawnFFMPEG();
+		this.process = await this.spawnFFMPEG();
 	};
 
 	private stopRecord = async () => {
@@ -125,7 +120,10 @@ export default class Recorder implements IRecorder {
 		this.eventEmitter.removeListener(Events.STOP, this.stopRecord);
 	};
 
-	private spawnFFMPEG = () => {
+	private spawnFFMPEG = async () => {
+		// const file = `${strftime(this.filePattern, new Date())}.${FILE_EXTENSION}`;
+		// await ensureDirectory();
+
 		const process = spawn(this.ffmpegBinary,
 			[
 				'-rtsp_transport', 'tcp',
@@ -137,7 +135,7 @@ export default class Recorder implements IRecorder {
 				...(this.title ? ['-metadata', `title=${this.title}`] : []),
 				'-c:v', 'copy',
 				...(this.noAudio ? ['-an'] : ['-c:a', 'aac']),
-				pathApi.join(this.path, `%Y.%m.%d.%H.%M.%S.${this.uriHash}.${FILE_EXTENSION}`),
+				pathApi.join(this.path, `${this.filePattern}.${FILE_EXTENSION}`),
 			],
 			{ detached: false },
 		);
@@ -250,23 +248,18 @@ export default class Recorder implements IRecorder {
 		}
 	};
 
-	private ensureDirectory = async (path: string) => {
-		if (directoryExists(path)) {
-			return;
-		}
-		await fse.ensureDir(path, 0o777);
-	};
-
 	private parseSegmentPath = (path: string) => {
-		const date = parseSegmentDate(path);
-		const file = `${strftime(this.filePattern, date)}.${FILE_EXTENSION}`;
-		return pathApi.join(this.path, file);
+		const filename = pathApi.basename(path);
+		const directory = path.slice(0, -filename.length);
+		const match = filename.match(/^\.~(?<name>.+)$/iu);
+		if (!match || !match.groups || !match.groups.name) {
+			throw new RecorderError('Segment name parsing failed.');
+		}
+		return pathApi.join(directory, match.groups.name);
 	};
 
 	private moveSegment = async (path: string) => {
 		const target = this.parseSegmentPath(path);
-		const dirpath = pathApi.dirname(target);
-		await this.ensureDirectory(dirpath);
 		await fse.move(path, target);
 		this.eventEmitter.emit(Events.FILE_CREATED, target);
 	};

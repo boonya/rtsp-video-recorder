@@ -34,6 +34,13 @@ export const directoryExists = (path: string): boolean => {
 	return true;
 };
 
+export const ensureDirectory = async (path: string) => {
+	if (directoryExists(path)) {
+		return;
+	}
+	return fse.ensureDir(path, 0o777);
+};
+
 export const clearSpace = async (root: string): Promise<void> => {
 	const listing = fs.readdirSync(root).map((i) => pathApi.join(root, i));
 	if (listing.length < 2) {
@@ -103,15 +110,6 @@ export const matchSegmentTime = (value: string): [number, DurationFactor] => {
 
 	const factor = match[2] as DurationFactor;
 	return [operand, factor];
-};
-
-export const getHash = (value: string): string => {
-	return createHash('md5').update(value).digest('hex');
-};
-
-export const parseSegmentDate = (path: string): Date => {
-	const [year, month, day, hour, minute, second] = pathApi.basename(path).split('.', 6).map(Number);
-	return new Date(year, month - 1, day, hour, minute, second);
 };
 
 export const parseProgressBuffer = (message: string) => {
