@@ -25,7 +25,7 @@ export const directoryExists = (path: string): boolean => {
 	let stats: fs.Stats;
 	try {
 		stats = fs.lstatSync(path);
-	} catch (e) {
+	} catch {
 		return false;
 	}
 	if (!stats.isDirectory()) {
@@ -50,7 +50,7 @@ export const getOldestObject = (listing: string[]): string => {
 				path,
 				created: fs.lstatSync(path).birthtimeMs,
 			};
-		} catch (err) {
+		} catch {
 			return { path, created: Infinity };
 		}
 	})
@@ -112,6 +112,24 @@ export const getHash = (value: string): string => {
 export const parseSegmentDate = (path: string): Date => {
 	const [year, month, day, hour, minute, second] = pathApi.basename(path).split('.', 6).map(Number);
 	return new Date(year, month - 1, day, hour, minute, second);
+};
+
+export const parseProgressBuffer = (message: string) => {
+	const openingPattern = new RegExp('Opening \'(.+)\' for writing');
+	const openingMatch = message.match(openingPattern);
+
+	const failedPattern = new RegExp('Failed to open segment \'(.+)\'');
+	const failedMatch = message.match(failedPattern);
+
+	if (failedMatch) {
+		throw new Error(`Failed to open file '${failedMatch[1]}'.`);
+	}
+
+	if (openingMatch) {
+		return openingMatch[1];
+	}
+
+	return;
 };
 
 /**

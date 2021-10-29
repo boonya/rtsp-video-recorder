@@ -2,9 +2,10 @@ module.exports = {
 	preset: 'ts-jest',
 	testEnvironment: 'node',
 	roots: ['src', 'test'],
+	// Automatically clear mock calls and instances between every test
+	clearMocks: true,
 	coverageDirectory: './coverage',
-	coverageReporters: ['lcov'],
-	resetMocks: true,
+	coverageReporters: ['text-summary', 'html', 'lcov'],
 	globals: {
 		'ts-jest': {
 			isolatedModules: true,

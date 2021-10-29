@@ -14,6 +14,7 @@ import {
 	clearSpace,
 	parseSegmentDate,
 	directoryExists,
+	parseProgressBuffer,
 } from './helpers';
 
 const FILE_EXTENSION = 'mp4';
@@ -58,6 +59,7 @@ export default class Recorder implements IRecorder {
 		this.noAudio = options.noAudio || false;
 
 		this.eventEmitter = new EventEmitter();
+		// TODO: Consider to remove in favour of file prefix ".~"
 		this.uriHash = getHash(this.uri);
 	}
 
@@ -237,27 +239,15 @@ export default class Recorder implements IRecorder {
 	};
 
 	private handleProgressBuffer = (message: string) => {
-		const openingPattern = new RegExp('Opening \'(.+)\' for writing');
-		const openingMatch = message.match(openingPattern);
-
-		const failedPattern = new RegExp('Failed to open segment \'(.+)\'');
-		const failedMatch = message.match(failedPattern);
-
-		if (failedMatch) {
-			throw new RecorderError(`Failed to open file '${failedMatch[1]}'.`);
+		try {
+			return parseProgressBuffer(message);
 		}
-
-		if (openingMatch) {
-			return openingMatch[1];
+		catch (err) {
+			const message = err instanceof Error
+				? err.message
+				: 'Parse progress failed';
+			throw new RecorderError(message);
 		}
-
-		return;
-	};
-
-	private parseSegmentPath = (path: string) => {
-		const date = parseSegmentDate(path);
-		const file = `${strftime(this.filePattern, date)}.${FILE_EXTENSION}`;
-		return pathApi.join(this.path, file);
 	};
 
 	private ensureDirectory = async (path: string) => {
@@ -265,6 +255,12 @@ export default class Recorder implements IRecorder {
 			return;
 		}
 		await fse.ensureDir(path, 0o777);
+	};
+
+	private parseSegmentPath = (path: string) => {
+		const date = parseSegmentDate(path);
+		const file = `${strftime(this.filePattern, date)}.${FILE_EXTENSION}`;
+		return pathApi.join(this.path, file);
 	};
 
 	private moveSegment = async (path: string) => {
