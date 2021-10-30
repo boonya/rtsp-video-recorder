@@ -17,7 +17,7 @@ export default class Recorder implements IRecorder {
 	/**
 	 * Here you can use bash
 	 */
-	private playlistName = [this.title, '$(date +%Y.%m.%d-%H.%M.%S)'].join('-');
+	private playlistName?: string;
 
 	/**
 	 * @READ: http://www.cplusplus.com/reference/ctime/strftime/
@@ -41,7 +41,7 @@ export default class Recorder implements IRecorder {
 
 		this.title = options.title;
 		this.ffmpegBinary = options.ffmpegBinary || this.ffmpegBinary;
-		this.playlistName = options.playlistName || this.playlistName;
+		this.playlistName = options.playlistName || [this.title, '$(date +%Y.%m.%d-%H.%M.%S)'].join('-');
 		this.filePattern = options.filePattern || this.filePattern;
 		this.segmentTime = options.segmentTime ? transformSegmentTime(options.segmentTime) : this.segmentTime;
 		this.dirSizeThreshold = options.dirSizeThreshold ? transformDirSizeThreshold(options.dirSizeThreshold) : undefined;
@@ -124,7 +124,7 @@ export default class Recorder implements IRecorder {
 				'-hls_time', String(this.segmentTime),
 				'-hls_list_size', '0',
 				'-hls_segment_filename', segmentNamePattern,
-				playlistName,
+				`./${playlistName}`,
 			],
 			{
 				detached: false,
@@ -150,7 +150,7 @@ export default class Recorder implements IRecorder {
 	};
 
 	private matchStarted = (message: string) => {
-		const pattern = new RegExp('Output #0, hls, to \'(?<file>(:?.+).m3u8)\':');
+		const pattern = new RegExp('Output #0, hls, to \'./(?<file>(:?.+).m3u8)\':');
 		return message.match(pattern)?.groups?.file;
 	};
 
