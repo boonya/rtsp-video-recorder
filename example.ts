@@ -15,6 +15,7 @@ if (process.stdin.isTTY) {
 
 try {
 	const {
+		SOURCE,
 		IP,
 		TITLE,
 		SEGMENT_TIME,
@@ -25,6 +26,13 @@ try {
 		SHOW_PROGRESS,
 	} = process.env;
 
+	if ((!SOURCE && !IP) || (SOURCE && IP)) {
+		console.warn('Error: Please specify SOURCE or IP.');
+		process.exit(1);
+	}
+
+	const source = SOURCE || `rtsp://${IP}:554/user=admin_password=tlJwpbo6_channel=1_stream=1.sdp?real_stream`;
+
 	if (!IP || !DESTINATION) {
 		console.warn('Error: You have to specify at least IP & DESTINATION.');
 		process.exit(1);
@@ -34,10 +42,11 @@ try {
 	const segmentTime = SEGMENT_TIME || '10m';
 	const dirSizeThreshold = THRESHOLD || '500M';
 	const noAudio = NO_AUDIO === 'true' ? true : false;
-	const filePattern = FILE_PATTERN || `%Y.%m.%d/%H.%M.%S-${title}`;
+	const filePattern = FILE_PATTERN || `${title}-%Y.%m.%d/%H.%M.%S`;
 
 	const recorder = new Recorder(
-		`rtsp://${IP}:554/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp?real_stream`, DESTINATION,
+		source,
+		DESTINATION,
 		{
 			title,
 			segmentTime,

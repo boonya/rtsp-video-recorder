@@ -64,6 +64,7 @@ recorder.on(RecorderEvents.STARTED, (payload) => {
     segmentTime: 600,
     autoClear: false,
     ffmpegBinary: 'ffmpeg',
+    playlist: '/full-path/playlist.m3u8',
   });
 });
 ```
@@ -101,7 +102,7 @@ recorder.on(RecorderEvents.FILE_CREATED, (payload) => {
 If no space left an event should be emitted and payload raised.
 
 There is approximation percentage which is set to 1, so when you reach out 496 you'll have `space_full` event emitted if you set your threshold e.g. 500.
-In other words it works based on formula `Math.ceil(used + used * APPROXIMATION_PERCENTAGE / 100) > threshold` where `threshold` is you threshold valud and `used` is amount of space used.
+In other words it works based on formula `Math.ceil(used + used * APPROXIMATION_PERCENTAGE / 100) > threshold` where `threshold` is you threshold valid and `used` is amount of space used.
 
 ```ts
 recorder.on(RecorderEvents.SPACE_FULL, (payload) => {
@@ -109,22 +110,6 @@ recorder.on(RecorderEvents.SPACE_FULL, (payload) => {
     path: '/media/Recorder',
     threshold: 500,
     used: 496,
-  });
-});
-```
-
-#### `space_wiped` event
-
-If no space left recorder directory should be wiped.
-The oldest subdirectory should be removed only. An event handler will get an object with
-`path`, `threshold` and space `used` which left after clear.
-
-```ts
-recorder.on(RecorderEvents.SPACE_WIPED, (payload) => {
-  assert.equal(payload, {
-    path: '/media/Recorder',
-    threshold: 500,
-    used: 200,
   });
 });
 ```
@@ -151,7 +136,7 @@ recorder.stop();
 
 ### If you need to know whether recording is in process or no
 
-You can execute `isRecording` methond on recorder instance which returns boolean value
+You can execute `isRecording` method on recorder instance which returns boolean value
 
 ```ts
 recorder.isRecording();

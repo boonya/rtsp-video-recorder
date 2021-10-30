@@ -105,8 +105,7 @@ export default class Recorder implements IRecorder {
 
 	private spawnFFMPEG = () => {
 		const playlistName = [this.title, '$(date +%Y.%m.%d-%H.%M.%S).m3u8'].join('-');
-		const playlistPath = pathApi.join(this.path, playlistName);
-		const segmentPath = pathApi.normalize(`${this.path}/${this.filePattern}.${FILE_EXTENSION}`);
+		const segmentNamePattern = `${this.filePattern}.${FILE_EXTENSION}`;
 
 		const process = spawn(this.ffmpegBinary,
 			[
@@ -119,10 +118,14 @@ export default class Recorder implements IRecorder {
 				'-strftime_mkdir', '1',
 				'-hls_time', String(this.segmentTime),
 				'-hls_list_size', '0',
-				'-hls_segment_filename', segmentPath,
-				playlistPath,
+				'-hls_segment_filename', segmentNamePattern,
+				playlistName,
 			],
-			{detached: false, shell: true},
+			{
+				detached: false,
+				shell: true,
+				cwd: this.path,
+			},
 		);
 
 		process.stderr.on('data', (buffer: Buffer) => {
