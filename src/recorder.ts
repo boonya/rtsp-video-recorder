@@ -1,4 +1,3 @@
-import pathApi from 'path';
 import { EventEmitter } from 'events';
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { IRecorder, Options, Events, EventCallback } from './types';

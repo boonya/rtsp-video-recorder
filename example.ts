@@ -26,7 +26,7 @@ try {
 		SHOW_PROGRESS,
 	} = process.env;
 
-	if (!DESTINATION && (!SOURCE && !IP) || (SOURCE && IP)) {
+	if (!DESTINATION || (!SOURCE && !IP) || (SOURCE && IP)) {
 		console.warn('Error: Please specify SOURCE or IP + DESTINATION.');
 		process.exit(1);
 	}
@@ -39,9 +39,7 @@ try {
 	const noAudio = NO_AUDIO === 'true' ? true : false;
 	const filePattern = FILE_PATTERN || `${title}-%Y.%m.%d/%H.%M.%S`;
 
-	const recorder = new Recorder(
-		source,
-		DESTINATION,
+	const recorder = new Recorder(source, DESTINATION,
 		{
 			title,
 			segmentTime,
