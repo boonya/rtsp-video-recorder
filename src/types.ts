@@ -3,6 +3,7 @@ export type DirSizeThresholdOption = number | string;
 
 export type Options = Partial<{
 	title: string;
+	playlistName: string;
 	filePattern: string;
 	segmentTime: SegmentTimeOption;
 	dirSizeThreshold: DirSizeThresholdOption;

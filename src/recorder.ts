@@ -15,6 +15,11 @@ export default class Recorder implements IRecorder {
 	private ffmpegBinary = 'ffmpeg';
 
 	/**
+	 * Here you can use bash
+	 */
+	private playlistName = [this.title, '$(date +%Y.%m.%d-%H.%M.%S)'].join('-');
+
+	/**
 	 * @READ: http://www.cplusplus.com/reference/ctime/strftime/
 	 */
 	private filePattern = '%Y.%m.%d/%H.%M.%S';
@@ -36,6 +41,7 @@ export default class Recorder implements IRecorder {
 
 		this.title = options.title;
 		this.ffmpegBinary = options.ffmpegBinary || this.ffmpegBinary;
+		this.playlistName = options.playlistName || this.playlistName;
 		this.filePattern = options.filePattern || this.filePattern;
 		this.segmentTime = options.segmentTime ? transformSegmentTime(options.segmentTime) : this.segmentTime;
 		this.dirSizeThreshold = options.dirSizeThreshold ? transformDirSizeThreshold(options.dirSizeThreshold) : undefined;
@@ -103,7 +109,7 @@ export default class Recorder implements IRecorder {
 	};
 
 	private spawnFFMPEG = () => {
-		const playlistName = [this.title, '$(date +%Y.%m.%d-%H.%M.%S).m3u8'].join('-');
+		const playlistName = `${this.playlistName}.m3u8`;
 		const segmentNamePattern = `${this.filePattern}.${FILE_EXTENSION}`;
 
 		const process = spawn(this.ffmpegBinary,

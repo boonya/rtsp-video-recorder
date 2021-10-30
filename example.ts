@@ -53,7 +53,8 @@ try {
 		recorder.on(RecorderEvents.PROGRESS, log(RecorderEvents.PROGRESS));
 	}
 
-	recorder.on(RecorderEvents.STARTED, log(RecorderEvents.STARTED))
+	recorder
+		.on(RecorderEvents.STARTED, log(RecorderEvents.STARTED))
 		.on(RecorderEvents.STOPPED, log(RecorderEvents.STOPPED))
 		.on(RecorderEvents.ERROR, log(RecorderEvents.ERROR))
 		.on(RecorderEvents.FILE_CREATED, log(RecorderEvents.FILE_CREATED))
