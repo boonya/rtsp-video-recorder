@@ -6,11 +6,11 @@
 		"declarationMap": true,
 		"sourceMap": true,
 		"removeComments": true,
+		"lib": ["es2018"],
+		"target": "es2018",
 	},
 	"include": [
 		"src/**/*.ts",
-		"test/**/*.ts",
-		"example.ts",
 	],
 	"exclude": [
 		"node_modules",
