@@ -11,15 +11,16 @@ export type Options = Partial<{
 	noAudio: boolean;
 }>;
 
-export type EventCallback = (...args: unknown[]) => void;
+export type EventCallback = (...args: any[]) => void;
 
 export enum Events {
+	START = 'start',
 	STARTED = 'started',
+	STOP = 'stop',
 	STOPPED = 'stopped',
 	ERROR = 'error',
 	PROGRESS = 'progress',
 	FILE_CREATED = 'file_created',
-	STOP = 'stop',
 	SPACE_FULL = 'space_full',
 }
 

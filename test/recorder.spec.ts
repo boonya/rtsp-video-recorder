@@ -1,13 +1,9 @@
-import pathApi from 'path';
 import { mocked } from 'ts-jest/utils';
-
-import Recorder, { RecorderValidationError } from '../src/recorder';
 import { verifyAllOptions } from '../src/validators';
+import {URI, PATH} from './test.helpers';
+import Recorder, { RecorderValidationError } from '../src/recorder';
 
 jest.mock('../src/validators');
-
-const URI = 'rtsp://username:password@host/path';
-const PATH = pathApi.normalize('/media/Recorder');
 
 beforeEach(() => {
 	mocked(verifyAllOptions).mockReturnValue([]);

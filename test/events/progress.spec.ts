@@ -1,31 +1,28 @@
 
 import { ChildProcessWithoutNullStreams } from 'child_process';
-import pathApi from 'path';
 import { mocked } from 'ts-jest/utils';
-import {mockSpawnProcess} from '../test.helpers';
-import Recorder, { RecorderEvents } from '../../src/recorder';
 import { verifyAllOptions } from '../../src/validators';
+import {mockSpawnProcess, URI, PATH} from '../test.helpers';
+import Recorder, { RecorderEvents } from '../../src/recorder';
 
 jest.mock('../../src/validators');
 
-const URI = 'rtsp://username:password@host/path';
-const PATH = pathApi.normalize('/media/Recorder');
-
 let fakeProcess: ChildProcessWithoutNullStreams;
+let eventHandler: () => void;
+
 beforeEach(() => {
 	mocked(verifyAllOptions).mockReturnValue([]);
 	fakeProcess = mockSpawnProcess();
+	eventHandler = jest.fn().mockName('onProgress');
 });
 
-test('should forward to event handler any ffmpeg progress message', async () => {
-	const onProgress = jest.fn().mockName('onProgress');
-
+test('should return any ffmpeg progress message', () => {
 	new Recorder(URI, PATH)
-		.on(RecorderEvents.PROGRESS, onProgress)
+		.on(RecorderEvents.PROGRESS, eventHandler)
 		.start();
 
 	fakeProcess.stderr.emit('data', Buffer.from('Random progress message', 'utf8'));
 
-	expect(onProgress).toBeCalledTimes(1);
-	expect(onProgress).toBeCalledWith('Random progress message');
+	expect(eventHandler).toBeCalledTimes(1);
+	expect(eventHandler).toBeCalledWith('Random progress message');
 });

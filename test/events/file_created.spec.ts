@@ -1,38 +1,37 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
-import pathApi from 'path';
 import { mocked } from 'ts-jest/utils';
-import Recorder, { RecorderEvents } from '../../src/recorder';
 import { verifyAllOptions } from '../../src/validators';
 import {mockSpawnProcess, URI, PATH} from '../test.helpers';
+import Recorder, { RecorderEvents } from '../../src/recorder';
 
 jest.mock('../../src/validators');
 
 let fakeProcess: ChildProcessWithoutNullStreams;
-let onFileCreated: () => void;
+let eventHandler: () => void;
 
 beforeEach(() => {
 	mocked(verifyAllOptions).mockReturnValue([]);
 	fakeProcess = mockSpawnProcess();
-	onFileCreated = jest.fn().mockName('onFileCreated');
+	eventHandler = jest.fn().mockName('onFileCreated');
 });
 
-test(`should forward filename to "${RecorderEvents.FILE_CREATED}" event handler if ffmpeg says: "Opening 'filename' for writing"`, () => {
+test('should return filename if ffmpeg says: "Opening \'*.mp4\' for writing"', () => {
 	new Recorder(URI, PATH)
-		.on(RecorderEvents.FILE_CREATED, onFileCreated)
+		.on(RecorderEvents.FILE_CREATED, eventHandler)
 		.start();
 
-	fakeProcess.stderr.emit('data', Buffer.from('Opening \'/full-path/segment.mp4\' for writing', 'utf8'));
+	fakeProcess.stderr.emit('data', Buffer.from('Opening \'segment.mp4\' for writing', 'utf8'));
 
-	expect(onFileCreated).toBeCalledTimes(1);
-	expect(onFileCreated).toBeCalledWith(pathApi.normalize('/full-path/segment.mp4'));
+	expect(eventHandler).toBeCalledTimes(1);
+	expect(eventHandler).toBeCalledWith('segment.mp4');
 });
 
-test(`should not handle "${RecorderEvents.FILE_CREATED}" event if ffmpeg says: "Opening 'playlist.m3u8.tmp' for writing"`, () => {
+test('should not handle event if ffmpeg says: "Opening \'*.m3u8.tmp\' for writing"', () => {
 	new Recorder(URI, PATH)
-		.on(RecorderEvents.FILE_CREATED, onFileCreated)
+		.on(RecorderEvents.FILE_CREATED, eventHandler)
 		.start();
 
-	fakeProcess.stderr.emit('data', Buffer.from('Opening \'/full-path/playlist.m3u8.tmp\' for writing', 'utf8'));
+	fakeProcess.stderr.emit('data', Buffer.from('Opening \'playlist.m3u8.tmp\' for writing', 'utf8'));
 
-	expect(onFileCreated).toBeCalledTimes(0);
+	expect(eventHandler).toBeCalledTimes(0);
 });
