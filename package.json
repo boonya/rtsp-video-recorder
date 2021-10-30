@@ -1,6 +1,6 @@
 {
   "name": "rtsp-video-recorder",
-  "version": "2.0.0-alpha.6",
+  "version": "2.0.0-alpha.5",
   "description": "Provide an API to record rtsp video stream to filesystem.",
   "main": "dist/recorder.js",
   "types": "dist/recorder.d.ts",
@@ -10,7 +10,7 @@
   "repository": "https://github.com/boonya/rtsp-video-recorder",
   "engines": {
     "npm": ">=7",
-    "node": ">=12"
+    "node": ">=10"
   },
   "scripts": {
     "example": "tsc -p tsconfig.example.json && node example/example.js",
