@@ -1,6 +1,7 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import { EventEmitter } from 'events';
 import { mocked } from 'ts-jest/utils';
+import path from 'path';
 
 jest.mock('child_process');
 
@@ -12,6 +13,9 @@ type MockSpawnProcessOptions = {
   onSpawn?: OnSpawnType,
   onKill?: OnKillType,
 };
+
+export const URI = 'rtsp://username:password@host/path';
+export const PATH = path.normalize('/media/Recorder');
 
 export function mockSpawnProcess (options: MockSpawnProcessOptions = {}) {
 	const onSpawn = options.onSpawn || (() => null);

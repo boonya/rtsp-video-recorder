@@ -1,31 +1,39 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
-import pathApi from 'path';
 import { mocked } from 'ts-jest/utils';
-import {mockSpawnProcess} from '../test.helpers';
+import {mockSpawnProcess, URI, PATH} from '../test.helpers';
 
 import Recorder, { RecorderEvents } from '../../src/recorder';
 import { verifyAllOptions } from '../../src/validators';
 
-jest.mock('fs');
 jest.mock('../../src/validators');
 
-const URI = 'rtsp://username:password@host/path';
-const PATH = pathApi.normalize('/media/Recorder');
-
 let fakeProcess: ChildProcessWithoutNullStreams;
+let onStarted: () => void;
+
 beforeEach(() => {
 	mocked(verifyAllOptions).mockReturnValue([]);
 	fakeProcess = mockSpawnProcess();
+	onStarted = jest.fn().mockName('onStarted');
 });
 
-test('should forward to event handler default recorder options', async () => {
-	const onStarted = jest.fn().mockName('onStarted');
+const FFMPEG_MESSAGE = `[libx264 @ 0x148816200] 264 - core 163 r3060 5db6aa6 - H.264/MPEG-4 AVC codec - Copyleft 2003-2021 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=15 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=23.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00
+Output #0, hls, to '/full-path/playlist.m3u8':
+  Metadata:
+    title           : Livingroom
+    encoder         : Lavf58.76.100
+  Stream #0:0: Video: h264, yuv420p(progressive), 2592x1944, q=2-31, 15 fps, 90k tbn
+    Metadata:
+      encoder         : Lavc58.134.100 libx264
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+`;
 
+test(`should forward default options to ${RecorderEvents.STARTED} event handler + playlist`, async () => {
 	new Recorder(URI, PATH)
 		.on(RecorderEvents.STARTED, onStarted)
 		.start();
 
-	fakeProcess.stderr.emit('data', Buffer.from('Opening \'segment.mp4\' for writing', 'utf8'));
+	fakeProcess.stderr.emit('data', Buffer.from(FFMPEG_MESSAGE, 'utf8'));
 
 	expect(onStarted).toBeCalledTimes(1);
 	expect(onStarted).toBeCalledWith({
@@ -33,28 +41,25 @@ test('should forward to event handler default recorder options', async () => {
 		path: PATH,
 		filePattern: '%Y.%m.%d/%H.%M.%S',
 		segmentTime: 600,
-		autoClear: false,
 		noAudio: false,
 		ffmpegBinary: 'ffmpeg',
+		playlist: '/full-path/playlist.m3u8',
 	});
 });
 
-test('should forward to event handler custom recorder options', async () => {
-	const onStarted = jest.fn().mockName('onStarted');
-
+test(`should forward custom options to ${RecorderEvents.STARTED} event handler + playlist`, async () => {
 	new Recorder(URI, PATH, {
 		title: 'Test Cam',
 		filePattern: '%Y %B %d/%I.%M.%S%p',
 		dirSizeThreshold: '500M',
 		segmentTime: '1h',
-		autoClear: true,
 		noAudio: true,
 		ffmpegBinary: '/bin/ffmpeg',
 	})
 		.on(RecorderEvents.STARTED, onStarted)
 		.start();
 
-	fakeProcess.stderr.emit('data', Buffer.from('Opening \'segment.mp4\' for writing', 'utf8'));
+	fakeProcess.stderr.emit('data', Buffer.from(FFMPEG_MESSAGE, 'utf8'));
 
 	expect(onStarted).toBeCalledTimes(1);
 	expect(onStarted).toBeCalledWith({
@@ -64,8 +69,8 @@ test('should forward to event handler custom recorder options', async () => {
 		filePattern: '%Y %B %d/%I.%M.%S%p',
 		dirSizeThreshold: 524288000,
 		segmentTime: 3600,
-		autoClear: true,
 		noAudio: true,
 		ffmpegBinary: '/bin/ffmpeg',
+		playlist: '/full-path/playlist.m3u8',
 	});
 });

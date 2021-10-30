@@ -86,29 +86,6 @@ recorder.on(RecorderEvents.STOPPED, (payload) => {
 });
 ```
 
-#### `segment_started` event
-
-Event handler receives a path to current and previous segments.
-
-```ts
-recorder.on(RecorderEvents.SEGMENT_STARTED, (payload) => {
-  assert.equal(payload, {
-    current: '/media/Recorder/2020.06.25.10.28.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4',
-    previous: '/media/Recorder/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4',
-  });
-});
-```
-
-Or just current if it's first segment during this run.
-
-```ts
-recorder.on(RecorderEvents.SEGMENT_STARTED, (payload) => {
-  assert.equal({
-    current: '/media/Recorder/2020.06.25.10.28.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4',
-  });
-});
-```
-
 #### `file_created` event
 
 New file should be created when new segment started or in case of recording stopped.

@@ -1,22 +1,12 @@
 import pathApi from 'path';
 import { EventEmitter } from 'events';
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
-import strftime from 'strftime';
-import fse from 'fs-extra';
-import du from 'du';
-import { IRecorder, Options, Events, EventCallback, SegmentStartedArg } from './types';
+import { IRecorder, Options, Events, EventCallback } from './types';
 import { RecorderError, RecorderValidationError } from './error';
 import { verifyAllOptions } from './validators';
-import {
-	transformSegmentTime,
-	transformDirSizeThreshold,
-	clearSpace,
-	ensureDirectory,
-	parseProgressBuffer,
-} from './helpers';
+import {transformSegmentTime, transformDirSizeThreshold} from './helpers';
 
 const FILE_EXTENSION = 'mp4';
-const APPROXIMATION_PERCENTAGE = 1;
 
 export {Recorder, Events as RecorderEvents, RecorderError, RecorderValidationError};
 export type { IRecorder };
@@ -34,12 +24,10 @@ export default class Recorder implements IRecorder {
 
 	private dirSizeThreshold?: number; // bytes
 
-	private autoClear: boolean;
 	private noAudio: boolean;
 
 	private process: ChildProcessWithoutNullStreams | null = null;
 	private eventEmitter: EventEmitter;
-	private previousSegment?: string;
 
 	constructor (private uri: string, private path: string, options: Options = {}) {
 		const errors = verifyAllOptions(path, options);
@@ -52,7 +40,6 @@ export default class Recorder implements IRecorder {
 		this.filePattern = options.filePattern || this.filePattern;
 		this.segmentTime = options.segmentTime ? transformSegmentTime(options.segmentTime) : this.segmentTime;
 		this.dirSizeThreshold = options.dirSizeThreshold ? transformDirSizeThreshold(options.dirSizeThreshold) : undefined;
-		this.autoClear = options.autoClear || false;
 		this.noAudio = options.noAudio || false;
 
 		this.eventEmitter = new EventEmitter();
@@ -64,9 +51,12 @@ export default class Recorder implements IRecorder {
 			return this;
 		}
 
-		this.startRecord().catch((err) => {
+		try {
+			this.startRecord();
+		}
+		catch (err) {
 			this.eventEmitter.emit(Events.ERROR, err);
-		});
+		}
 
 		return this;
 	};
@@ -90,13 +80,13 @@ export default class Recorder implements IRecorder {
 
 	public isRecording = (): boolean => Boolean(this.process);
 
-	private startRecord = async () => {
+	private startRecord = () => {
 		this.eventEmitter.on(Events.PROGRESS, this.onProgress);
-		this.eventEmitter.on(Events.SEGMENT_STARTED, this.onSegmentStarted);
+		this.eventEmitter.on(Events.FILE_CREATED, this.onFileCreated);
 		this.eventEmitter.on(Events.SPACE_FULL, this.onSpaceFull);
 		this.eventEmitter.on(Events.STOP, this.stopRecord);
 
-		this.process = await this.spawnFFMPEG();
+		this.process = this.spawnFFMPEG();
 	};
 
 	private stopRecord = async () => {
@@ -104,40 +94,35 @@ export default class Recorder implements IRecorder {
 			this.eventEmitter.emit(Events.ERROR, new RecorderError('No process spawned.'));
 			return;
 		}
+		// TODO: Instead of kill process consider to gracefully stop it
 		this.process.kill();
 		this.process = null;
-		if (this.previousSegment) {
-			try {
-				await this.moveSegment(this.previousSegment);
-			} catch (err) {
-				this.eventEmitter.emit(Events.ERROR, err);
-			}
-			this.previousSegment = undefined;
-		}
 		this.eventEmitter.removeListener(Events.PROGRESS, this.onProgress);
-		this.eventEmitter.removeListener(Events.SEGMENT_STARTED, this.onSegmentStarted);
+		this.eventEmitter.removeListener(Events.FILE_CREATED, this.onFileCreated);
 		this.eventEmitter.removeListener(Events.SPACE_FULL, this.onSpaceFull);
 		this.eventEmitter.removeListener(Events.STOP, this.stopRecord);
 	};
 
-	private spawnFFMPEG = async () => {
-		// const file = `${strftime(this.filePattern, new Date())}.${FILE_EXTENSION}`;
-		// await ensureDirectory();
+	private spawnFFMPEG = () => {
+		const playlistName = [this.title, '$(date +%Y.%m.%d-%H.%M.%S).m3u8'].join('-');
+		const playlistPath = pathApi.join(this.path, playlistName);
+		const segmentPath = pathApi.normalize(`${this.path}/${this.filePattern}.${FILE_EXTENSION}`);
 
 		const process = spawn(this.ffmpegBinary,
 			[
 				'-rtsp_transport', 'tcp',
 				'-i', this.uri,
 				'-reset_timestamps', '1',
-				'-f', 'segment',
-				'-segment_time', `${this.segmentTime}`,
-				'-strftime', '1',
 				...(this.title ? ['-metadata', `title=${this.title}`] : []),
-				'-c:v', 'copy',
 				...(this.noAudio ? ['-an'] : ['-c:a', 'aac']),
-				pathApi.join(this.path, `${this.filePattern}.${FILE_EXTENSION}`),
+				'-strftime', '1',
+				'-strftime_mkdir', '1',
+				'-hls_time', String(this.segmentTime),
+				'-hls_list_size', '0',
+				'-hls_segment_filename', segmentPath,
+				playlistPath,
 			],
-			{ detached: false },
+			{detached: false, shell: true},
 		);
 
 		process.stderr.on('data', (buffer: Buffer) => {
@@ -156,111 +141,64 @@ export default class Recorder implements IRecorder {
 		return process;
 	};
 
+	private matchStarted = (message: string) => {
+		const pattern = new RegExp('Output #0, hls, to \'(?<file>(:?.+).m3u8)\':');
+		return message.match(pattern)?.groups?.file;
+	};
+
+	private matchFileCreated = (message: string) => {
+		const pattern = new RegExp('Opening \'(?<file>.+)\' for writing');
+		const file = message.match(pattern)?.groups?.file || false;
+		const segment = file && !file.match(/\.m3u8\.tmp$/u);
+		return segment ? file : undefined;
+	};
+
+	private ensureSpaceEnough = () => {
+		// FIXME: Should be implemented before release
+		/**
+		 * fs.lstatSync(path[, options]) -> https://nodejs.org/docs/latest-v10.x/api/fs.html#fs_fs_lstatsync_path_options
+		 * stats.size -> https://nodejs.org/docs/latest-v10.x/api/fs.html#fs_stats_size
+		 * stats.isDirectory() -> https://nodejs.org/docs/latest-v10.x/api/fs.html#fs_stats_isdirectory
+		 */
+	};
+
 	private onProgress = (message: string) => {
 		try {
-			const current = this.handleProgressBuffer(message);
-			if (current) {
-				if (!this.previousSegment) {
-					this.eventEmitter.emit(Events.STARTED, {
-						path: this.path,
-						uri: this.uri,
-						segmentTime: this.segmentTime,
-						filePattern: this.filePattern,
-						dirSizeThreshold: this.dirSizeThreshold,
-						autoClear: this.autoClear,
-						title: this.title,
-						noAudio: this.noAudio,
-						ffmpegBinary: this.ffmpegBinary,
-					});
-				}
-				this.eventEmitter.emit(Events.SEGMENT_STARTED, {
-					current,
-					previous: this.previousSegment,
+			const playlist = this.matchStarted(message);
+			if (playlist) {
+				this.eventEmitter.emit(Events.STARTED, {
+					path: this.path,
+					uri: this.uri,
+					segmentTime: this.segmentTime,
+					filePattern: this.filePattern,
+					dirSizeThreshold: this.dirSizeThreshold,
+					title: this.title,
+					noAudio: this.noAudio,
+					ffmpegBinary: this.ffmpegBinary,
+					playlist,
 				});
-				this.previousSegment = current;
 			}
+
+			const file = this.matchFileCreated(message);
+			if (file) {
+				this.eventEmitter.emit(Events.FILE_CREATED, file);
+			}
+
 		} catch (err) {
 			this.eventEmitter.emit(Events.ERROR, err);
 			this.eventEmitter.emit(Events.STOP, 'Error', err);
 		}
 	};
 
-	private onSegmentStarted = async ({ previous }: SegmentStartedArg) => {
+	private onFileCreated = async () => {
 		try {
-			if (previous) {
-				await this.moveSegment(previous);
-			}
 			await this.ensureSpaceEnough();
 		} catch (err) {
 			this.eventEmitter.emit(Events.ERROR, err);
 		}
 	};
 
-	private onSpaceFull = async () => {
-		try {
-			if (!this.autoClear) {
-				this.eventEmitter.emit(Events.STOP, 'Space is full');
-				return;
-			}
-
-			await clearSpace(this.path);
-
-			const used = await du(this.path, { disk: true });
-
-			this.eventEmitter.emit(Events.SPACE_WIPED, {
-				path: this.path,
-				threshold: this.dirSizeThreshold,
-				used,
-			});
-		} catch (err) {
-			this.eventEmitter.emit(Events.ERROR, err);
-			this.eventEmitter.emit(Events.STOP, 'Error', err);
-		}
-	};
-
-	private ensureSpaceEnough = async () => {
-		if (!this.dirSizeThreshold) {
-			return true;
-		}
-
-		const used = await du(this.path, { disk: true });
-
-		if (Math.ceil(used + used * APPROXIMATION_PERCENTAGE / 100) > this.dirSizeThreshold) {
-			this.eventEmitter.emit(Events.SPACE_FULL, {
-				path: this.path,
-				threshold: this.dirSizeThreshold,
-				used,
-			});
-			return false;
-		}
-		return true;
-	};
-
-	private handleProgressBuffer = (message: string) => {
-		try {
-			return parseProgressBuffer(message);
-		}
-		catch (err) {
-			const message = err instanceof Error
-				? err.message
-				: 'Parse progress failed';
-			throw new RecorderError(message);
-		}
-	};
-
-	private parseSegmentPath = (path: string) => {
-		const filename = pathApi.basename(path);
-		const directory = path.slice(0, -filename.length);
-		const match = filename.match(/^\.~(?<name>.+)$/iu);
-		if (!match || !match.groups || !match.groups.name) {
-			throw new RecorderError('Segment name parsing failed.');
-		}
-		return pathApi.join(directory, match.groups.name);
-	};
-
-	private moveSegment = async (path: string) => {
-		const target = this.parseSegmentPath(path);
-		await fse.move(path, target);
-		this.eventEmitter.emit(Events.FILE_CREATED, target);
+	private onSpaceFull = () => {
+		this.stop();
 	};
 }

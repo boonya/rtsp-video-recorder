@@ -20,7 +20,6 @@ try {
 		SEGMENT_TIME,
 		THRESHOLD,
 		FILE_PATTERN,
-		AUTO_CLEAR,
 		NO_AUDIO,
 		DESTINATION,
 		SHOW_PROGRESS,
@@ -34,7 +33,6 @@ try {
 	const title = TITLE || 'Example cam';
 	const segmentTime = SEGMENT_TIME || '10m';
 	const dirSizeThreshold = THRESHOLD || '500M';
-	const autoClear = AUTO_CLEAR === 'true' ? true : false;
 	const noAudio = NO_AUDIO === 'true' ? true : false;
 	const filePattern = FILE_PATTERN || `%Y.%m.%d/%H.%M.%S-${title}`;
 
@@ -45,7 +43,6 @@ try {
 			segmentTime,
 			filePattern,
 			dirSizeThreshold,
-			autoClear,
 			noAudio,
 		},
 	);
@@ -57,11 +54,9 @@ try {
 	recorder.on(RecorderEvents.STARTED, log(RecorderEvents.STARTED))
 		.on(RecorderEvents.STOPPED, log(RecorderEvents.STOPPED))
 		.on(RecorderEvents.ERROR, log(RecorderEvents.ERROR))
-		.on(RecorderEvents.SEGMENT_STARTED, log(RecorderEvents.SEGMENT_STARTED))
 		.on(RecorderEvents.FILE_CREATED, log(RecorderEvents.FILE_CREATED))
 		.on(RecorderEvents.STOP, log(RecorderEvents.STOP))
 		.on(RecorderEvents.SPACE_FULL, log(RecorderEvents.SPACE_FULL))
-		.on(RecorderEvents.SPACE_WIPED, log(RecorderEvents.SPACE_WIPED))
 		.start();
 
 	process.stdin.on('keypress', (_, key) => {
