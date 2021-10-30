@@ -1,23 +1,24 @@
 import fs from 'fs';
+import pathApi from 'path';
 import { BytesFactor, DurationFactor, DirSizeThresholdOption, SegmentTimeOption } from './types';
 
 const SEGMENT_TIME_PATTERN = /^(\d+)(s|m|h)?$/;
 
 const DIR_SIZE_THRESHOLD_PATTERN = /^(\d+)(M|G|T)?$/;
 
-export function transformDirSizeThreshold(value: DirSizeThresholdOption): number {
+export function transformDirSizeThreshold(value: DirSizeThresholdOption) {
 	if (typeof value === 'number') return value;
 	const [operand, factor] = matchDirSizeThreshold(value);
 	return getBytesSize(operand, factor);
 }
 
-export function transformSegmentTime(value: SegmentTimeOption): number {
+export function transformSegmentTime(value: SegmentTimeOption) {
 	if (typeof value === 'number') return value;
 	const [operand, factor] = matchSegmentTime(value);
 	return getDuration(operand, factor);
 }
 
-export const directoryExists = (path: string): boolean => {
+export function directoryExists(path: string) {
 	let stats: fs.Stats;
 	try {
 		stats = fs.lstatSync(path);
@@ -28,7 +29,26 @@ export const directoryExists = (path: string): boolean => {
 		throw new Error(`${path} exists but it is not a directory.`);
 	}
 	return true;
-};
+}
+
+/**
+ * @returns bytes
+ */
+export function dirSize(path: string) {
+	return getDirListing(path)
+		.map((item) => fs.statSync(item).size)
+		.reduce((acc, size) => acc + size, 0);
+}
+
+function getDirListing(dir: string): string[] {
+	return fs.readdirSync(dir).flatMap((item) => {
+		const path = pathApi.join(dir, item);
+		if (fs.statSync(path).isDirectory()) {
+			return getDirListing(path);
+		}
+		return path;
+	});
+}
 
 function matchDirSizeThreshold(value: string): [number, BytesFactor] {
 	const match = value.match(DIR_SIZE_THRESHOLD_PATTERN);

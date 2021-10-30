@@ -1,59 +1,90 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
+import { transformDirSizeThreshold, dirSize } from '../../src/helpers';
 import { mocked } from 'ts-jest/utils';
 import { verifyAllOptions } from '../../src/validators';
 import {mockSpawnProcess, URI, PATH} from '../test.helpers';
-import Recorder, { RecorderEvents } from '../../src/recorder';
+import Recorder, { RecorderEvents, RecorderError } from '../../src/recorder';
 
 jest.mock('../../src/validators');
+jest.mock('../../src/helpers');
 
 let fakeProcess: ChildProcessWithoutNullStreams;
-// let eventHandler: () => void;
+let onSpaceFull: () => void;
 
 beforeEach(() => {
 	mocked(verifyAllOptions).mockReturnValue([]);
 	fakeProcess = mockSpawnProcess();
-	// eventHandler = jest.fn().mockName('onError');
+	onSpaceFull = jest.fn().mockName('onSpaceFull');
 });
 
-test.skip('If no space left an event should be emitted and payload raised.', async () => {
-	const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
-	// mocked(du).mockImplementation(() => 496);
-	// mocked(fs).readdirSync.mockImplementation(() => []);
+test('should not evaluate space if "threshold" is undefined', () => {
+	mocked(dirSize).mockReturnValue(Infinity);
 
-	const onSpaceFull = jest.fn().mockName('onSpaceFull');
-
-	new Recorder(URI, PATH, { dirSizeThreshold: 500 })
+	new Recorder(URI, PATH)
 		.on(RecorderEvents.SPACE_FULL, onSpaceFull)
 		.start();
 
-	fakeProcess.stderr.emit('data', Buffer.from(`Opening '${FIRST_SEGMENT}' for writing`, 'utf8'));
+	fakeProcess.stderr.emit('data', Buffer.from('Opening \'segment.mp4\' for writing', 'utf8'));
 
-	// https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
-	await Promise.resolve();
+	expect(dirSize).toBeCalledTimes(0);
+	expect(onSpaceFull).toBeCalledTimes(0);
+});
 
+test('should evaluate space and rise an event if "used" is close to the "threshold"', () => {
+	const dirSizeThreshold = 500;
+	mocked(transformDirSizeThreshold).mockReturnValue(dirSizeThreshold);
+	mocked(dirSize).mockReturnValue(496);
+	const onStop = jest.fn().mockName('onStop');
+
+	new Recorder(URI, PATH, { dirSizeThreshold })
+		.on(RecorderEvents.SPACE_FULL, onSpaceFull)
+		.on(RecorderEvents.STOP, onStop)
+		.start();
+
+	fakeProcess.stderr.emit('data', Buffer.from('Opening \'segment.mp4\' for writing', 'utf8'));
+
+	expect(dirSize).toBeCalledTimes(1);
 	expect(onSpaceFull).toBeCalledTimes(1);
 	expect(onSpaceFull).toBeCalledWith({
-		path: PATH,
 		threshold: 500,
 		used: 496,
 	});
+	expect(onStop).toBeCalledTimes(1);
+	expect(onStop).toBeCalledWith('space_full');
 });
 
-test.skip('If space not enough an event won\'t be emitted.', async () => {
-	const FIRST_SEGMENT = `${PATH}/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4`;
-	// mocked(du).mockImplementation(() => 400);
-	// mocked(fs).readdirSync.mockImplementation(() => []);
+test('should evaluate space but do not rise an event if "used" is far from the "threshold"', () => {
+	const dirSizeThreshold = 500;
+	mocked(transformDirSizeThreshold).mockReturnValue(dirSizeThreshold);
+	mocked(dirSize).mockReturnValue(400);
 
-	const onSpaceFull = jest.fn().mockName('onSpaceFull');
-
-	new Recorder(URI, PATH, { dirSizeThreshold: 500 })
+	new Recorder(URI, PATH, { dirSizeThreshold })
 		.on(RecorderEvents.SPACE_FULL, onSpaceFull)
 		.start();
 
-	fakeProcess.stderr.emit('data', Buffer.from(`Opening '${FIRST_SEGMENT}' for writing`, 'utf8'));
+	fakeProcess.stderr.emit('data', Buffer.from('Opening \'segment.mp4\' for writing', 'utf8'));
 
-	// https://stackoverflow.com/questions/54890916/jest-fn-claims-not-to-have-been-called-but-has?answertab=active#tab-top
-	await Promise.resolve();
-
+	expect(dirSize).toBeCalledTimes(1);
 	expect(onSpaceFull).toBeCalledTimes(0);
+});
+
+test('should return RecorderError - space evaluation failed', () => {
+	const dirSizeThreshold = 500;
+	mocked(transformDirSizeThreshold).mockReturnValue(dirSizeThreshold);
+	mocked(dirSize).mockImplementation(() => {
+		throw new Error('space evaluation failed');
+	});
+	const onError = jest.fn().mockName('onError');
+
+	new Recorder(URI, PATH, { dirSizeThreshold })
+		.on(RecorderEvents.SPACE_FULL, onSpaceFull)
+		.on(RecorderEvents.ERROR, onError)
+		.start();
+
+	fakeProcess.stderr.emit('data', Buffer.from('Opening \'segment.mp4\' for writing', 'utf8'));
+
+	expect(dirSize).toBeCalledTimes(1);
+	expect(onSpaceFull).toBeCalledTimes(0);
+	expect(onError).toBeCalledTimes(1);
+	expect(onError).toBeCalledWith(new RecorderError('space evaluation failed'));
 });

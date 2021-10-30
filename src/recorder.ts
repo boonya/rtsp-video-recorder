@@ -3,10 +3,12 @@ import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { IRecorder, Options, Events, EventCallback } from './types';
 import { RecorderError, RecorderValidationError } from './error';
 import { verifyAllOptions } from './validators';
-import {transformSegmentTime, transformDirSizeThreshold} from './helpers';
+import {transformSegmentTime, transformDirSizeThreshold, dirSize} from './helpers';
 
 export {Recorder, Events as RecorderEvents, RecorderError, RecorderValidationError};
 export type { IRecorder };
+
+const APPROXIMATION_PERCENTAGE = 1;
 
 export default class Recorder implements IRecorder {
 	private title?: string;
@@ -39,12 +41,19 @@ export default class Recorder implements IRecorder {
 
 		this.title = options.title;
 		this.ffmpegBinary = options.ffmpegBinary || this.ffmpegBinary;
+
 		this.playlistName = options.playlistName || [this.title, '$(date +%Y.%m.%d-%H.%M.%S)']
-			.filter((v) => Object.prototype.toString.call(v) === '[object String]' && v?.trim())
+			.filter((v) => v?.trim())
 			.join('-');
+
 		this.filePattern = options.filePattern || this.filePattern;
+
 		this.segmentTime = options.segmentTime ? transformSegmentTime(options.segmentTime) : this.segmentTime;
-		this.dirSizeThreshold = options.dirSizeThreshold ? transformDirSizeThreshold(options.dirSizeThreshold) : undefined;
+
+		this.dirSizeThreshold = options.dirSizeThreshold
+			? transformDirSizeThreshold(options.dirSizeThreshold)
+			: undefined;
+
 		this.noAudio = options.noAudio || false;
 
 		this.eventEmitter = new EventEmitter();
@@ -152,53 +161,46 @@ export default class Recorder implements IRecorder {
 		return segment ? file : undefined;
 	};
 
-	private ensureSpaceEnough = async () => {
-		// FIXME: Should be implemented before release
-		/**
-		 * fs.lstatSync(path[, options]) -> https://nodejs.org/docs/latest-v10.x/api/fs.html#fs_fs_lstatsync_path_options
-		 * stats.size -> https://nodejs.org/docs/latest-v10.x/api/fs.html#fs_stats_size
-		 * stats.isDirectory() -> https://nodejs.org/docs/latest-v10.x/api/fs.html#fs_stats_isdirectory
-		 */
-		await Promise.resolve(true);
-	};
-
 	private onProgress = (message: string) => {
-		try {
-			const playlist = this.matchStarted(message);
-			if (playlist) {
-				this.eventEmitter.emit(Events.STARTED, {
-					path: this.path,
-					uri: this.uri,
-					segmentTime: this.segmentTime,
-					filePattern: this.filePattern,
-					dirSizeThreshold: this.dirSizeThreshold,
-					title: this.title,
-					noAudio: this.noAudio,
-					ffmpegBinary: this.ffmpegBinary,
-					playlist,
-				});
-			}
+		const playlist = this.matchStarted(message);
+		if (playlist) {
+			this.eventEmitter.emit(Events.STARTED, {
+				path: this.path,
+				uri: this.uri,
+				segmentTime: this.segmentTime,
+				filePattern: this.filePattern,
+				dirSizeThreshold: this.dirSizeThreshold,
+				title: this.title,
+				noAudio: this.noAudio,
+				ffmpegBinary: this.ffmpegBinary,
+				playlist,
+			});
+		}
 
-			const file = this.matchFileCreated(message);
-			if (file) {
-				this.eventEmitter.emit(Events.FILE_CREATED, file);
-			}
-
-		} catch (err) {
-			this.eventEmitter.emit(Events.ERROR, err);
-			this.eventEmitter.emit(Events.STOP, 'error', err);
+		const file = this.matchFileCreated(message);
+		if (file) {
+			this.eventEmitter.emit(Events.FILE_CREATED, file);
 		}
 	};
 
-	private onFileCreated = async () => {
+	private onFileCreated = () => {
 		try {
-			await this.ensureSpaceEnough();
+			if (!this.dirSizeThreshold) {
+				return;
+			}
+			const used = dirSize(this.path);
+			if (Math.ceil(used + used * APPROXIMATION_PERCENTAGE / 100) > this.dirSizeThreshold) {
+				this.eventEmitter.emit(Events.SPACE_FULL, {
+					threshold: this.dirSizeThreshold,
+					used,
+				});
+			}
 		} catch (err) {
 			this.eventEmitter.emit(Events.ERROR, err);
 		}
 	};
 
 	private onSpaceFull = () => {
-		this.stop();
+		this.eventEmitter.emit(Events.STOP, 'space_full');
 	};
 }
