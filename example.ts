@@ -26,17 +26,12 @@ try {
 		SHOW_PROGRESS,
 	} = process.env;
 
-	if ((!SOURCE && !IP) || (SOURCE && IP)) {
-		console.warn('Error: Please specify SOURCE or IP.');
+	if (!DESTINATION && (!SOURCE && !IP) || (SOURCE && IP)) {
+		console.warn('Error: Please specify SOURCE or IP + DESTINATION.');
 		process.exit(1);
 	}
 
 	const source = SOURCE || `rtsp://${IP}:554/user=admin_password=tlJwpbo6_channel=1_stream=1.sdp?real_stream`;
-
-	if (!IP || !DESTINATION) {
-		console.warn('Error: You have to specify at least IP & DESTINATION.');
-		process.exit(1);
-	}
 
 	const title = TITLE || 'Example cam';
 	const segmentTime = SEGMENT_TIME || '10m';
