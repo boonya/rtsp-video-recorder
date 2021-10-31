@@ -2,6 +2,13 @@
 
 All notable changes to this project should be documented in this file.
 
+## [2.0.1-alpha.6] - Several bugfixes and improvements
+
+- Verify disc space on "start" as well. Recording is not going to start if space not enough.
+- "space_full" event occurs correctly now
+- unsubscribe "progress", "file_created" & "space_full" events when ffmpeg process stopped only.
+- Event "start" occurs before "progress"
+
 ## [2.0.0-alpha.5] - FFMPEG HLS
 
 - Simplified code
@@ -40,7 +47,7 @@ Nothing really interesting so far.
 
 - `RecorderValidationError` throws an errors list in addition to just a message.
 
-
+[2.0.1-alpha.6]: https://github.com/boonya/rtsp-video-recorder/compare/2.0.0-alpha.5...2.0.1-alpha.6
 [2.0.0-alpha.5]: https://github.com/boonya/rtsp-video-recorder/compare/1.4.0-alpha.4...2.0.0-alpha.5
 [1.4.0-alpha.4]: https://github.com/boonya/rtsp-video-recorder/compare/1.4.0-alpha.3...1.4.0-alpha.4
 [1.4.0-alpha.3]: https://github.com/boonya/rtsp-video-recorder/compare/1.4.0-alpha.2...1.4.0-alpha.3

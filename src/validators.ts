@@ -1,7 +1,8 @@
-import pathApi from 'path';
-
 import { Options, SegmentTimeOption, DirSizeThresholdOption } from './types';
-import { directoryExists, transformSegmentTime, transformDirSizeThreshold } from './helpers';
+import directoryExists from './helpers/directoryExists';
+import pathApi from 'path';
+import transformDirSizeThreshold from './helpers/sizeThreshold';
+import transformSegmentTime from './helpers/segmentTime';
 
 function getErrorMessage(err: unknown) {
 	return err instanceof Error

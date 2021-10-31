@@ -15,10 +15,13 @@ beforeEach(() => {
 	eventHandler = jest.fn().mockName('onFileCreated');
 });
 
-test('should return filename if ffmpeg says: "Opening \'*.mp4\' for writing"', () => {
+test('should return filename if ffmpeg says: "Opening \'*.mp4\' for writing"', async () => {
 	new Recorder(URI, DESTINATION)
 		.on(RecorderEvents.FILE_CREATED, eventHandler)
 		.start();
+
+	// We have to wait next tick
+	await Promise.resolve(true);
 
 	fakeProcess.stderr.emit('data', Buffer.from('Opening \'segment.mp4\' for writing', 'utf8'));
 
@@ -26,10 +29,13 @@ test('should return filename if ffmpeg says: "Opening \'*.mp4\' for writing"', (
 	expect(eventHandler).toBeCalledWith('segment.mp4');
 });
 
-test('should not handle event if ffmpeg says: "Opening \'*.m3u8.tmp\' for writing"', () => {
+test('should not handle event if ffmpeg says: "Opening \'*.m3u8.tmp\' for writing"', async () => {
 	new Recorder(URI, DESTINATION)
 		.on(RecorderEvents.FILE_CREATED, eventHandler)
 		.start();
+
+	// We have to wait next tick
+	await Promise.resolve(true);
 
 	fakeProcess.stderr.emit('data', Buffer.from('Opening \'playlist.m3u8.tmp\' for writing', 'utf8'));
 

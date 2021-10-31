@@ -15,13 +15,16 @@ beforeEach(() => {
 	eventHandler = jest.fn().mockName('onStopped');
 });
 
-test('should return FFMPEG exit code', () => {
+test('should return FFMPEG exit code', async () => {
 	new Recorder(URI, DESTINATION)
 		.on(RecorderEvents.STOPPED, eventHandler)
 		.start();
 
+	// We have to wait next tick
+	await Promise.resolve(true);
+
 	fakeProcess.emit('close', 255);
 
 	expect(eventHandler).toBeCalledTimes(1);
-	expect(eventHandler).toBeCalledWith(255, 'FFMPEG exited. Code 255.');
+	expect(eventHandler).toBeCalledWith(255, 'ffmpeg_exited');
 });

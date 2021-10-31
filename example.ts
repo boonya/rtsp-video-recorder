@@ -8,6 +8,10 @@ const log = (event: string) => (...args: unknown[]) => {
 	console.log();
 };
 
+function logProgress(...args: unknown[]) {
+	return log(RecorderEvents.PROGRESS)(...args);
+}
+
 readline.emitKeypressEvents(process.stdin);
 if (process.stdin.isTTY) {
 	process.stdin.setRawMode(true);
@@ -50,15 +54,25 @@ try {
 	);
 
 	if (SHOW_PROGRESS) {
-		recorder.on(RecorderEvents.PROGRESS, log(RecorderEvents.PROGRESS));
+		recorder.on(RecorderEvents.PROGRESS, logProgress);
+	}
+	else {
+		recorder.on(RecorderEvents.PROGRESS, logProgress)
+			.on(RecorderEvents.STARTED, () => {
+				recorder.removeListener(RecorderEvents.PROGRESS, logProgress);
+			})
+			.on(RecorderEvents.STOP, () => {
+				recorder.on(RecorderEvents.PROGRESS, logProgress);
+			});
 	}
 
 	recorder
+		.on(RecorderEvents.START, log(RecorderEvents.START))
 		.on(RecorderEvents.STARTED, log(RecorderEvents.STARTED))
+		.on(RecorderEvents.STOP, log(RecorderEvents.STOP))
 		.on(RecorderEvents.STOPPED, log(RecorderEvents.STOPPED))
 		.on(RecorderEvents.ERROR, log(RecorderEvents.ERROR))
 		.on(RecorderEvents.FILE_CREATED, log(RecorderEvents.FILE_CREATED))
-		.on(RecorderEvents.STOP, log(RecorderEvents.STOP))
 		.on(RecorderEvents.SPACE_FULL, log(RecorderEvents.SPACE_FULL))
 		.start();
 

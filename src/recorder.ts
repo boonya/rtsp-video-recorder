@@ -1,9 +1,11 @@
-import { EventEmitter } from 'events';
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { EventEmitter } from 'events';
 import { IRecorder, Options, Events, EventCallback } from './types';
 import { RecorderError, RecorderValidationError } from './error';
 import { verifyAllOptions } from './validators';
-import {transformSegmentTime, transformDirSizeThreshold, dirSize} from './helpers';
+import dirSize from './helpers/space';
+import transformDirSizeThreshold from './helpers/sizeThreshold';
+import transformSegmentTime from './helpers/segmentTime';
 
 export {Recorder, Events as RecorderEvents, RecorderError, RecorderValidationError};
 export type { IRecorder };
@@ -82,15 +84,24 @@ export default class Recorder implements IRecorder {
 
 	public isRecording = () => Boolean(this.process);
 
-	private startRecord = () => {
+	private startRecord = async () => {
 		try {
+			// We have to wait next tick
+			await Promise.resolve(true);
+
 			if (this.process) {
 				throw new RecorderError('Process already spawned.');
 			}
 
-			this.on(Events.PROGRESS, this.onProgress);
-			this.on(Events.FILE_CREATED, this.onFileCreated);
-			this.on(Events.SPACE_FULL, this.onSpaceFull);
+			if (!this.isSpaceEnough()) {
+				this.eventEmitter.emit(Events.STOPPED, 0, 'space_full');
+				return;
+			}
+
+			this.on(Events.PROGRESS, this.onProgress)
+				.on(Events.FILE_CREATED, this.isSpaceEnough)
+				.on(Events.SPACE_FULL, this.onSpaceFull)
+				.on(Events.STOPPED, this.onStopped);
 
 			const playlistName = `${this.playlistName}.m3u8`;
 			const segmentNamePattern = `${this.filePattern}.mp4`;
@@ -126,25 +137,22 @@ export default class Recorder implements IRecorder {
 			});
 
 			this.process.on('close', (code: string) => {
-				this.eventEmitter.emit(Events.STOPPED, code, `FFMPEG exited. Code ${code}.`);
+				this.eventEmitter.emit(Events.STOPPED, code, 'ffmpeg_exited');
 			});
 		} catch (err) {
 			this.eventEmitter.emit(Events.ERROR, err);
 		}
 	};
 
-	private stopRecord = () => {
+	private stopRecord = async () => {
+		// We have to wait next tick
+		await Promise.resolve(true);
+
 		if (!this.process) {
 			this.eventEmitter.emit(Events.ERROR, new RecorderError('No process spawned.'));
 			return;
 		}
-		// TODO: Instead of kill process consider to gracefully stop it
 		this.process.kill();
-		this.process = null;
-
-		this.eventEmitter.removeListener(Events.PROGRESS, this.onProgress);
-		this.eventEmitter.removeListener(Events.FILE_CREATED, this.onFileCreated);
-		this.eventEmitter.removeListener(Events.SPACE_FULL, this.onSpaceFull);
 	};
 
 	private matchStarted = (message: string) => {
@@ -181,24 +189,35 @@ export default class Recorder implements IRecorder {
 		}
 	};
 
-	private onFileCreated = () => {
+	private isSpaceEnough = () => {
 		try {
 			if (!this.dirSizeThreshold) {
-				return;
+				return true;
 			}
 			const used = dirSize(this.destination);
-			if (Math.ceil(used + used * APPROXIMATION_PERCENTAGE / 100) > this.dirSizeThreshold) {
-				this.eventEmitter.emit(Events.SPACE_FULL, {
-					threshold: this.dirSizeThreshold,
-					used,
-				});
+			const enough = Math.ceil(used + used * APPROXIMATION_PERCENTAGE / 100) < this.dirSizeThreshold;
+			if (enough) {
+				return true;
 			}
+			this.eventEmitter.emit(Events.SPACE_FULL, {
+				threshold: this.dirSizeThreshold,
+				used,
+			});
+			return false;
 		} catch (err) {
 			this.eventEmitter.emit(Events.ERROR, err);
 		}
+		return true;
 	};
 
 	private onSpaceFull = () => {
 		this.eventEmitter.emit(Events.STOP, 'space_full');
+	};
+
+	private onStopped = () => {
+		this.eventEmitter.removeListener(Events.PROGRESS, this.onProgress);
+		this.eventEmitter.removeListener(Events.FILE_CREATED, this.isSpaceEnough);
+		this.eventEmitter.removeListener(Events.SPACE_FULL, this.onSpaceFull);
+		this.process = null;
 	};
 }
