@@ -1,7 +1,7 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { mocked } from 'ts-jest/utils';
 import { verifyAllOptions } from '../../src/validators';
-import {mockSpawnProcess, URI, PATH} from '../test.helpers';
+import {mockSpawnProcess, URI, DESTINATION} from '../test.helpers';
 import Recorder, { RecorderEvents } from '../../src/recorder';
 
 jest.mock('../../src/validators');
@@ -28,7 +28,7 @@ Output #0, hls, to './playlist.m3u8':
 `;
 
 test('should return default options + playlist', () => {
-	new Recorder(URI, PATH)
+	new Recorder(URI, DESTINATION)
 		.on(RecorderEvents.STARTED, eventHandler)
 		.start();
 
@@ -37,7 +37,7 @@ test('should return default options + playlist', () => {
 	expect(eventHandler).toBeCalledTimes(1);
 	expect(eventHandler).toBeCalledWith({
 		uri: URI,
-		path: PATH,
+		destination: DESTINATION,
 		filePattern: '%Y.%m.%d/%H.%M.%S',
 		playlist: 'playlist.m3u8',
 		segmentTime: 600,
@@ -47,7 +47,7 @@ test('should return default options + playlist', () => {
 });
 
 test('should return custom options + playlist', () => {
-	new Recorder(URI, PATH, {
+	new Recorder(URI, DESTINATION, {
 		title: 'Test Cam',
 		filePattern: '%Y %B %d/%I.%M.%S%p',
 		dirSizeThreshold: '500M',
@@ -63,7 +63,7 @@ test('should return custom options + playlist', () => {
 	expect(eventHandler).toBeCalledTimes(1);
 	expect(eventHandler).toBeCalledWith({
 		uri: URI,
-		path: PATH,
+		destination: DESTINATION,
 		title: 'Test Cam',
 		filePattern: '%Y %B %d/%I.%M.%S%p',
 		playlist: 'playlist.m3u8',

@@ -20,7 +20,7 @@ sudo apt update
 sudo apt install -y ffmpeg
 ```
 
-If you prefer different package manager or work on different linux distro use appropriate to your system command.
+If you prefer different package manager or work on different linux distr use appropriate to your system command.
 
 ## Installation
 
@@ -81,14 +81,13 @@ Handler receives an object that contains options applied to the current process
 recorder.on(RecorderEvents.STARTED, (payload) => {
   assert.equal(payload, {
     uri: 'rtsp://username:password@host/path',
-    path: '/media/Recorder',
+    destination: '/media/Recorder',
+    playlist: 'playlist.m3u8',
     title: 'Test Camera',
-    noAudio: false,
     filePattern: '%Y.%m.%d/%H.%M.%S',
     segmentTime: 600,
-    autoClear: false,
+    noAudio: false,
     ffmpegBinary: 'ffmpeg',
-    playlist: 'playlist.m3u8',
   });
 });
 ```
@@ -184,7 +183,7 @@ new Recorder('rtsp://username:password@host/path', '/media/Recorder')
 RTSP stream URI.
 e.g. `rtsp://username:password@host/path`
 
-### path
+### destination
 
 Path to the directory for video records.
 It may be relative but better to define it in absolute manner.
@@ -200,8 +199,6 @@ Title of video file. Used as metadata of video file.
 The name you want your playlist file to have.
 
 By default the name is going to be `$(date +%Y.%m.%d-%H.%M.%S)` (e.g. `2020.01.03-03.19.15`) which represents a time playlist have been created.
-
-If `title` option passed playlistName is going to be `${title}-$(date +%Y.%m.%d-%H.%M.%S)`.
 
 ### filePattern
 

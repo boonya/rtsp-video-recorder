@@ -1,6 +1,6 @@
 import { mocked } from 'ts-jest/utils';
 import { verifyAllOptions } from '../src/validators';
-import {mockSpawnProcess, URI, PATH} from './test.helpers';
+import {mockSpawnProcess, URI, DESTINATION} from './test.helpers';
 import Recorder, { RecorderValidationError } from '../src/recorder';
 
 jest.mock('../src/validators');
@@ -16,7 +16,7 @@ test('should throw RecorderValidationError if validation failed', () => {
 		'One more validation error message',
 	]);
 
-	expect(() => new Recorder(URI, PATH)).toThrowError(new RecorderValidationError('Options invalid', [
+	expect(() => new Recorder(URI, DESTINATION)).toThrowError(new RecorderValidationError('Options invalid', [
 		'Any validation error message',
 		'One more validation error message',
 	]));
@@ -24,7 +24,7 @@ test('should throw RecorderValidationError if validation failed', () => {
 
 describe('isRecording', () => {
 	test('should return true if process started', () => {
-		const isRecording = new Recorder(URI, PATH)
+		const isRecording = new Recorder(URI, DESTINATION)
 			.start()
 			.isRecording();
 
@@ -32,14 +32,14 @@ describe('isRecording', () => {
 	});
 
 	test('should return false if process not started', () => {
-		const isRecording = new Recorder(URI, PATH)
+		const isRecording = new Recorder(URI, DESTINATION)
 			.isRecording();
 
 		expect(isRecording).toBe(false);
 	});
 
 	test('should return false if process started & then stopped', () => {
-		const isRecording = new Recorder(URI, PATH)
+		const isRecording = new Recorder(URI, DESTINATION)
 			.start()
 			.stop()
 			.isRecording();

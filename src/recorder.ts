@@ -33,22 +33,20 @@ export default class Recorder implements IRecorder {
 	private process: ChildProcessWithoutNullStreams | null = null;
 	private eventEmitter: EventEmitter;
 
-	constructor (private uri: string, private path: string, options: Options = {}) {
-		const errors = verifyAllOptions(path, options);
+	constructor (private uri: string, private destination: string, options: Options = {}) {
+		const errors = verifyAllOptions(destination, options);
 		if (errors.length) {
 			throw new RecorderValidationError('Options invalid', errors);
 		}
 
 		this.title = options.title;
 		this.ffmpegBinary = options.ffmpegBinary || this.ffmpegBinary;
-
-		this.playlistName = options.playlistName || [this.title, '$(date +%Y.%m.%d-%H.%M.%S)']
-			.filter((v) => v?.trim())
-			.join('-');
-
+		this.playlistName = options.playlistName || '$(date +%Y.%m.%d-%H.%M.%S)';
 		this.filePattern = options.filePattern || this.filePattern;
 
-		this.segmentTime = options.segmentTime ? transformSegmentTime(options.segmentTime) : this.segmentTime;
+		this.segmentTime = options.segmentTime
+			? transformSegmentTime(options.segmentTime)
+			: this.segmentTime;
 
 		this.dirSizeThreshold = options.dirSizeThreshold
 			? transformDirSizeThreshold(options.dirSizeThreshold)
@@ -114,7 +112,7 @@ export default class Recorder implements IRecorder {
 				{
 					detached: false,
 					shell: true,
-					cwd: this.path,
+					cwd: this.destination,
 				},
 			);
 
@@ -165,15 +163,15 @@ export default class Recorder implements IRecorder {
 		const playlist = this.matchStarted(message);
 		if (playlist) {
 			this.eventEmitter.emit(Events.STARTED, {
-				path: this.path,
 				uri: this.uri,
-				segmentTime: this.segmentTime,
-				filePattern: this.filePattern,
-				dirSizeThreshold: this.dirSizeThreshold,
+				destination: this.destination,
+				playlist,
 				title: this.title,
+				filePattern: this.filePattern,
+				segmentTime: this.segmentTime,
+				dirSizeThreshold: this.dirSizeThreshold,
 				noAudio: this.noAudio,
 				ffmpegBinary: this.ffmpegBinary,
-				playlist,
 			});
 		}
 
@@ -188,7 +186,7 @@ export default class Recorder implements IRecorder {
 			if (!this.dirSizeThreshold) {
 				return;
 			}
-			const used = dirSize(this.path);
+			const used = dirSize(this.destination);
 			if (Math.ceil(used + used * APPROXIMATION_PERCENTAGE / 100) > this.dirSizeThreshold) {
 				this.eventEmitter.emit(Events.SPACE_FULL, {
 					threshold: this.dirSizeThreshold,
