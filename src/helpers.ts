@@ -41,13 +41,20 @@ export function dirSize(path: string) {
 }
 
 function getDirListing(dir: string): string[] {
-	return fs.readdirSync(dir).flatMap((item) => {
-		const path = pathApi.join(dir, item);
-		if (fs.statSync(path).isDirectory()) {
-			return getDirListing(path);
-		}
-		return path;
-	});
+	return fs.readdirSync(dir)
+		.map((item) => {
+			const path = pathApi.join(dir, item);
+			if (fs.statSync(path).isDirectory()) {
+				return getDirListing(path);
+			}
+			return path;
+		})
+		.reduce<string[]>((acc, i) => {
+			if (Array.isArray(i)) {
+				return [...acc, ...i];
+			}
+			return [...acc, i];
+		}, []);
 }
 
 function matchDirSizeThreshold(value: string): [number, BytesFactor] {
