@@ -34,7 +34,7 @@ jobs:
       - run: npm run types
 
   test:
-    name: Testing node@${{ matrix.node }} / ${{ matrix.os }} 🧪
+    name: Testing on ${{ matrix.os }} -> node@${{ matrix.node }} 🧪
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
