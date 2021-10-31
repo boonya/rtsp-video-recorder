@@ -1,6 +1,6 @@
 {
   "name": "rtsp-video-recorder",
-  "version": "1.4.0-alpha.4",
+  "version": "2.0.0-alpha.5",
   "description": "Provide an API to record rtsp video stream to filesystem.",
   "main": "dist/recorder.js",
   "types": "dist/recorder.d.ts",
@@ -10,7 +10,7 @@
   "repository": "https://github.com/boonya/rtsp-video-recorder",
   "engines": {
     "npm": ">=7",
-    "node": ">=12"
+    "node": ">=10"
   },
   "scripts": {
     "example": "tsc -p tsconfig.example.json && node example/example.js",
@@ -30,18 +30,10 @@
   ],
   "author": "Serhii [boonya] Buinytskyi",
   "license": "MIT",
-  "dependencies": {
-    "du": "^1.0.0",
-    "fs-extra": "^10.0.0",
-    "strftime": "^0.10.0"
-  },
   "devDependencies": {
     "@tsconfig/node16": "^1.0.2",
-    "@types/du": "^1.0.1",
-    "@types/fs-extra": "^9.0.13",
     "@types/jest": "^27.0.2",
     "@types/node": "^16.11.6",
-    "@types/strftime": "^0.9.4",
     "@typescript-eslint/eslint-plugin": "^5.2.0",
     "@typescript-eslint/parser": "^5.2.0",
     "eslint": "^8.1.0",

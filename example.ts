@@ -15,37 +15,36 @@ if (process.stdin.isTTY) {
 
 try {
 	const {
+		SOURCE,
 		IP,
 		TITLE,
 		SEGMENT_TIME,
 		THRESHOLD,
 		FILE_PATTERN,
-		AUTO_CLEAR,
 		NO_AUDIO,
 		DESTINATION,
 		SHOW_PROGRESS,
 	} = process.env;
 
-	if (!IP || !DESTINATION) {
-		console.warn('Error: You have to specify at least IP & DESTINATION.');
+	if (!DESTINATION || (!SOURCE && !IP) || (SOURCE && IP)) {
+		console.warn('Error: Please specify SOURCE or IP + DESTINATION.');
 		process.exit(1);
 	}
+
+	const source = SOURCE || `rtsp://${IP}:554/user=admin_password=tlJwpbo6_channel=1_stream=1.sdp?real_stream`;
 
 	const title = TITLE || 'Example cam';
 	const segmentTime = SEGMENT_TIME || '10m';
 	const dirSizeThreshold = THRESHOLD || '500M';
-	const autoClear = AUTO_CLEAR === 'true' ? true : false;
 	const noAudio = NO_AUDIO === 'true' ? true : false;
-	const filePattern = FILE_PATTERN || `%Y.%m.%d/%H.%M.%S-${title}`;
+	const filePattern = FILE_PATTERN || `${title}-%Y.%m.%d/%H.%M.%S`;
 
-	const recorder = new Recorder(
-		`rtsp://${IP}:554/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp?real_stream`, DESTINATION,
+	const recorder = new Recorder(source, DESTINATION,
 		{
 			title,
 			segmentTime,
 			filePattern,
 			dirSizeThreshold,
-			autoClear,
 			noAudio,
 		},
 	);
@@ -54,14 +53,13 @@ try {
 		recorder.on(RecorderEvents.PROGRESS, log(RecorderEvents.PROGRESS));
 	}
 
-	recorder.on(RecorderEvents.STARTED, log(RecorderEvents.STARTED))
+	recorder
+		.on(RecorderEvents.STARTED, log(RecorderEvents.STARTED))
 		.on(RecorderEvents.STOPPED, log(RecorderEvents.STOPPED))
 		.on(RecorderEvents.ERROR, log(RecorderEvents.ERROR))
-		.on(RecorderEvents.SEGMENT_STARTED, log(RecorderEvents.SEGMENT_STARTED))
 		.on(RecorderEvents.FILE_CREATED, log(RecorderEvents.FILE_CREATED))
 		.on(RecorderEvents.STOP, log(RecorderEvents.STOP))
 		.on(RecorderEvents.SPACE_FULL, log(RecorderEvents.SPACE_FULL))
-		.on(RecorderEvents.SPACE_WIPED, log(RecorderEvents.SPACE_WIPED))
 		.start();
 
 	process.stdin.on('keypress', (_, key) => {

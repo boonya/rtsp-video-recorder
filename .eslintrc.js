@@ -22,5 +22,6 @@ module.exports = {
 		indent: ['error', 'tab'],
 		quotes: ['error', 'single'],
 		semi: ['error', 'always'],
+		'@typescript-eslint/no-unused-vars': ['error'],
 	}
 };

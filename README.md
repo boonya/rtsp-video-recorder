@@ -46,6 +46,30 @@ const recorder = new Recorder('rtsp://username:password@host/path', '/media/Reco
 
 ### Assign event handlers you need
 
+#### `start` event
+
+```ts
+recorder.on(RecorderEvents.START, (payload) => {
+  assert.equal(payload, 'programmatically');
+});
+```
+
+#### `stop` event
+
+```ts
+recorder.on(RecorderEvents.STOP, (payload) => {
+  assert.equal(payload, 'programmatically');
+});
+```
+
+or
+
+```ts
+recorder.on(RecorderEvents.STOP, (payload) => {
+  assert.equal(payload, 'error', Error);
+});
+```
+
 #### `started` event
 
 Handler receives an object that contains options applied to the current process
@@ -64,6 +88,7 @@ recorder.on(RecorderEvents.STARTED, (payload) => {
     segmentTime: 600,
     autoClear: false,
     ffmpegBinary: 'ffmpeg',
+    playlist: 'playlist.m3u8',
   });
 });
 ```
@@ -86,36 +111,13 @@ recorder.on(RecorderEvents.STOPPED, (payload) => {
 });
 ```
 
-#### `segment_started` event
-
-Event handler receives a path to current and previous segments.
-
-```ts
-recorder.on(RecorderEvents.SEGMENT_STARTED, (payload) => {
-  assert.equal(payload, {
-    current: '/media/Recorder/2020.06.25.10.28.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4',
-    previous: '/media/Recorder/2020.06.25.10.18.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4',
-  });
-});
-```
-
-Or just current if it's first segment during this run.
-
-```ts
-recorder.on(RecorderEvents.SEGMENT_STARTED, (payload) => {
-  assert.equal({
-    current: '/media/Recorder/2020.06.25.10.28.04.731b9d2bc1c4b8376bc7fb87a3565f7b.mp4',
-  });
-});
-```
-
 #### `file_created` event
 
 New file should be created when new segment started or in case of recording stopped.
 
 ```ts
 recorder.on(RecorderEvents.FILE_CREATED, (payload) => {
-  assert.equal(payload, `/media/Recorder/2020.06.25/10.18.04.mp4`);
+  assert.equal(payload, `2020.06.25/10.18.04.mp4`);
 });
 ```
 
@@ -124,30 +126,13 @@ recorder.on(RecorderEvents.FILE_CREATED, (payload) => {
 If no space left an event should be emitted and payload raised.
 
 There is approximation percentage which is set to 1, so when you reach out 496 you'll have `space_full` event emitted if you set your threshold e.g. 500.
-In other words it works based on formula `Math.ceil(used + used * APPROXIMATION_PERCENTAGE / 100) > threshold` where `threshold` is you threshold valud and `used` is amount of space used.
+In other words it works based on formula `Math.ceil(used + used * APPROXIMATION_PERCENTAGE / 100) > threshold` where `threshold` is you threshold valid and `used` is amount of space used.
 
 ```ts
 recorder.on(RecorderEvents.SPACE_FULL, (payload) => {
   assert.equal(payload, {
-    path: '/media/Recorder',
     threshold: 500,
     used: 496,
-  });
-});
-```
-
-#### `space_wiped` event
-
-If no space left recorder directory should be wiped.
-The oldest subdirectory should be removed only. An event handler will get an object with
-`path`, `threshold` and space `used` which left after clear.
-
-```ts
-recorder.on(RecorderEvents.SPACE_WIPED, (payload) => {
-  assert.equal(payload, {
-    path: '/media/Recorder',
-    threshold: 500,
-    used: 200,
   });
 });
 ```
@@ -174,7 +159,7 @@ recorder.stop();
 
 ### If you need to know whether recording is in process or no
 
-You can execute `isRecording` methond on recorder instance which returns boolean value
+You can execute `isRecording` method on recorder instance which returns boolean value
 
 ```ts
 recorder.isRecording();
@@ -192,7 +177,7 @@ new Recorder('rtsp://username:password@host/path', '/media/Recorder')
   .start();
 ```
 
-## Properties
+## Arguments
 
 ### uri
 
@@ -206,6 +191,18 @@ It may be relative but better to define it in absolute manner.
 
 ## Options
 
+### title
+
+Title of video file. Used as metadata of video file.
+
+### playlistName
+
+The name you want your playlist file to have.
+
+By default the name is going to be `$(date +%Y.%m.%d-%H.%M.%S)` (e.g. `2020.01.03-03.19.15`) which represents a time playlist have been created.
+
+If `title` option passed playlistName is going to be `${title}-$(date +%Y.%m.%d-%H.%M.%S)`.
+
 ### filePattern
 
 File path pattern. By default it is `%Y.%m.%d/%H.%M.%S` which will be translated to e.g. `2020.01.03/03.19.15`
@@ -218,24 +215,16 @@ Duration of one video file (in seconds).
 600 seconds or 10 minutes by default if not defined.
 It can be a number of seconds or string xs, xm or xh what means amount of seconds, minutes or hours respectively.
 
-### title
-
-Title of video file. Used as metadata of video file.
-
 ### noAudio
 
 By default the process is going to record audio stream into a file but in case you don't want to, you can pass `true` to this option. Note that audio stream is encoded using ACC.
 
 ### dirSizeThreshold
 
-In case you have this option specified you will have ability to catch `SPACE_FULL` event whent threshold is reached. It can be a number of bytes or string xM, xG or xT what means amount of Megabytes, Gigabytes or Terrabytes respectively.
+In case you have this option specified you will have ability to catch `SPACE_FULL` event when threshold is reached. It can be a number of bytes or string xM, xG or xT what means amount of Megabytes, Gigabytes or Terabytes respectively.
 
-### autoClear
-
-This option is `false` bu default. So, if you reach a threshold your `Recorder` emits `SPACE_FULL` event and stops. But if you specify this option as `true` it will remove the oldest directory in case threshold reached out. Also it does emit `SPACE_WIPED` event in case of some directory removed.
-
-_NOTE that option does not make sence if `dirSizeThreshold` option is not specified._
+_NOTE that option does not make sense if `dirSizeThreshold` option is not specified._
 
 ### ffmpegBinary
 
-In case you need to specify a path to ffmpeg binary you can do it usin this argument.
+In case you need to specify a path to ffmpeg binary you can do it using this argument.
