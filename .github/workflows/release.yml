@@ -1,4 +1,4 @@
-name: Publishing
+name: Publishing 🚚
 
 on:
   release:
@@ -7,7 +7,7 @@ on:
 jobs:
 
   lint:
-    name: Linting
+    name: Linting 🔎
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -18,7 +18,7 @@ jobs:
       - run: npm run eslint
 
   types:
-    name: Type checking
+    name: Type checking 🔎
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -29,7 +29,7 @@ jobs:
       - run: npm run types
 
   test:
-    name: Test
+    name: Test 🧪
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -40,8 +40,8 @@ jobs:
       - run: npm run test:coverage
 
   publish:
-    needs: [ lint, test ]
-    name: Build & publish
+    needs: [ lint, types, test ]
+    name: Build & publish 🚀
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

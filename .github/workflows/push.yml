@@ -1,4 +1,4 @@
-name: Linting, types checking, testing
+name: Linting, types checking, testing 👮🏽‍♂️
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
 
 jobs:
   lint:
-    name: Linting
+    name: Linting 🔎
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -23,7 +23,7 @@ jobs:
       - run: npm run eslint
 
   types:
-    name: Type checking
+    name: Type checking 🔎
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -34,7 +34,7 @@ jobs:
       - run: npm run types
 
   test:
-    name: Testing node@${{ matrix.node }} / ${{ matrix.os }}
+    name: Testing node@${{ matrix.node }} / ${{ matrix.os }} 🧪
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -50,7 +50,7 @@ jobs:
 
   coverage:
     needs: [ test ]
-    name: Sending test coverage to Code Climate
+    name: Sending test coverage to Code Climate 📊
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
