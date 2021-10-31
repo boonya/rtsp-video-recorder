@@ -177,7 +177,7 @@ new Recorder('rtsp://username:password@host/path', '/media/Recorder')
   .start();
 ```
 
-## Properties
+## Arguments
 
 ### uri
 
@@ -227,4 +227,4 @@ _NOTE that option does not make sense if `dirSizeThreshold` option is not specif
 
 ### ffmpegBinary
 
-In case you need to specify a path to ffmpeg binary you can do it usin this argument.
+In case you need to specify a path to ffmpeg binary you can do it using this argument.
