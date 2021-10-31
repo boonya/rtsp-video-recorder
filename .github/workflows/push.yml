@@ -1,4 +1,4 @@
-name: Linting, types checking, testing 👮🏽‍♂️
+name: Linting, Type checking, Testing 👮🏽‍♂️
 
 on:
   push:
@@ -49,8 +49,9 @@ jobs:
       - run: npm run test
 
   coverage:
-    needs: [ test ]
     name: Sending test coverage to Code Climate 📊
+    needs: [ lint, types, test ]
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
