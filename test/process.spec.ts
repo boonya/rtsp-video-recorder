@@ -48,7 +48,7 @@ it('Spawn arguments with options defined', () => {
 			'-hls_time', '1000',
 			'-hls_list_size', '0',
 			'-hls_segment_filename', '%Y.%m.%d/%H.%M.%S.mp4',
-			'./Any video title-$(date +%Y.%m.%d-%H.%M.%S).m3u8',
+			'./$(date +%Y.%m.%d-%H.%M.%S).m3u8',
 		]);
 		expect(options).toEqual({ detached: false, shell: true, cwd: DESTINATION });
 	}

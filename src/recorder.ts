@@ -41,14 +41,12 @@ export default class Recorder implements IRecorder {
 
 		this.title = options.title;
 		this.ffmpegBinary = options.ffmpegBinary || this.ffmpegBinary;
-
-		this.playlistName = options.playlistName || [this.title, '$(date +%Y.%m.%d-%H.%M.%S)']
-			.filter((v) => v?.trim())
-			.join('-');
-
+		this.playlistName = options.playlistName || '$(date +%Y.%m.%d-%H.%M.%S)';
 		this.filePattern = options.filePattern || this.filePattern;
 
-		this.segmentTime = options.segmentTime ? transformSegmentTime(options.segmentTime) : this.segmentTime;
+		this.segmentTime = options.segmentTime
+			? transformSegmentTime(options.segmentTime)
+			: this.segmentTime;
 
 		this.dirSizeThreshold = options.dirSizeThreshold
 			? transformDirSizeThreshold(options.dirSizeThreshold)
