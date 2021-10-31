@@ -4,6 +4,19 @@ All notable changes to this project should be documented in this file.
 
 ## [2.0.0-alpha.5] - FFMPEG HLS
 
+- Simplified code
+- No messy asynchronous operations anymore
+- **.m3u8** playlist generation
+- Zero dependencies (except of **ffmpeg** and dev dependencies of course)
+- Reduced package size
+- node 10+ support
+- No space wiping, **space_wiped** event and **autoClear** option anymore `[BREAKING CHANGES]`
+- In case threshold has reached process just stops
+- **space_full** event does not expose a path anymore. Just **{threshold: Number, used: Number}**
+- No **segment_started** event anymore `[BREAKING CHANGES]`
+- **file_created** & **started** events expose relative path to playlist or video file `[BREAKING CHANGES]`
+- **started** event property **path** has renamed to **destination** `[BREAKING CHANGES]`
+
 ## [1.4.0-alpha.4] - Dependencies update
 
 Nothing really interesting so far.

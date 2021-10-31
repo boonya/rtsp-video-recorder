@@ -1,6 +1,6 @@
 import { mocked } from 'ts-jest/utils';
 import { verifyAllOptions } from '../../src/validators';
-import {mockSpawnProcess, URI, PATH} from '../test.helpers';
+import {mockSpawnProcess, URI, DESTINATION} from '../test.helpers';
 import Recorder, { RecorderEvents } from '../../src/recorder';
 
 jest.mock('../../src/validators');
@@ -16,7 +16,7 @@ beforeEach(() => {
 });
 
 test('should return "programmatically" if .stop() executed', () => {
-	new Recorder(URI, PATH)
+	new Recorder(URI, DESTINATION)
 		.on(RecorderEvents.STOP, onStop)
 		.on(RecorderEvents.STOPPED, onStopped)
 		.start()

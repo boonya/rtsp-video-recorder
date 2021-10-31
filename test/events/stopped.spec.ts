@@ -1,7 +1,7 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { mocked } from 'ts-jest/utils';
 import { verifyAllOptions } from '../../src/validators';
-import {mockSpawnProcess, URI, PATH} from '../test.helpers';
+import {mockSpawnProcess, URI, DESTINATION} from '../test.helpers';
 import Recorder, { RecorderEvents } from '../../src/recorder';
 
 jest.mock('../../src/validators');
@@ -16,7 +16,7 @@ beforeEach(() => {
 });
 
 test('should return FFMPEG exit code', () => {
-	new Recorder(URI, PATH)
+	new Recorder(URI, DESTINATION)
 		.on(RecorderEvents.STOPPED, eventHandler)
 		.start();
 

@@ -1,5 +1,5 @@
 import { mocked } from 'ts-jest/utils';
-import {mockSpawnProcess, URI, PATH} from './test.helpers';
+import {mockSpawnProcess, URI, DESTINATION} from './test.helpers';
 import Recorder from '../src/recorder';
 import { verifyAllOptions } from '../src/validators';
 import { Options } from '../src/types';
@@ -25,13 +25,13 @@ it('Spawn arguments with no additional options defined', () => {
 			'-hls_segment_filename', '%Y.%m.%d/%H.%M.%S.mp4',
 			'./$(date +%Y.%m.%d-%H.%M.%S).m3u8',
 		]);
-		expect(options).toEqual({ detached: false, shell: true, cwd: PATH });
+		expect(options).toEqual({ detached: false, shell: true, cwd: DESTINATION });
 	}
 
 	// @ts-ignore
 	mockSpawnProcess({ onSpawn });
 
-	new Recorder(URI, PATH).start();
+	new Recorder(URI, DESTINATION).start();
 });
 
 it('Spawn arguments with options defined', () => {
@@ -50,11 +50,11 @@ it('Spawn arguments with options defined', () => {
 			'-hls_segment_filename', '%Y.%m.%d/%H.%M.%S.mp4',
 			'./Any video title-$(date +%Y.%m.%d-%H.%M.%S).m3u8',
 		]);
-		expect(options).toEqual({ detached: false, shell: true, cwd: PATH });
+		expect(options).toEqual({ detached: false, shell: true, cwd: DESTINATION });
 	}
 
 	// @ts-ignore
 	mockSpawnProcess({ onSpawn });
 
-	new Recorder(URI, PATH, { title: 'Any video title', segmentTime: 1000, noAudio: true }).start();
+	new Recorder(URI, DESTINATION, { title: 'Any video title', segmentTime: 1000, noAudio: true }).start();
 });

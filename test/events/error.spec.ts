@@ -1,7 +1,7 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { mocked } from 'ts-jest/utils';
 import { verifyAllOptions } from '../../src/validators';
-import {mockSpawnProcess, URI, PATH} from '../test.helpers';
+import {mockSpawnProcess, URI, DESTINATION} from '../test.helpers';
 import Recorder, { RecorderEvents, RecorderError } from '../../src/recorder';
 
 jest.mock('../../src/validators');
@@ -16,7 +16,7 @@ beforeEach(() => {
 });
 
 test('should return RecorderError with message given by ffmpeg', () => {
-	new Recorder(URI, PATH)
+	new Recorder(URI, DESTINATION)
 		.on(RecorderEvents.ERROR, eventHandler)
 		.start();
 
@@ -27,7 +27,7 @@ test('should return RecorderError with message given by ffmpeg', () => {
 });
 
 test('should return RecorderError - process already spawned', () => {
-	new Recorder(URI, PATH)
+	new Recorder(URI, DESTINATION)
 		.on(RecorderEvents.ERROR, eventHandler)
 		.start()
 		.start();
@@ -37,7 +37,7 @@ test('should return RecorderError - process already spawned', () => {
 });
 
 test('should return RecorderError - no processes spawned', () => {
-	new Recorder(URI, PATH)
+	new Recorder(URI, DESTINATION)
 		.on(RecorderEvents.ERROR, eventHandler)
 		.stop();
 
