@@ -1,12 +1,14 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
-import { transformDirSizeThreshold, dirSize } from '../../src/helpers';
 import { mocked } from 'ts-jest/utils';
 import { verifyAllOptions } from '../../src/validators';
 import {mockSpawnProcess, URI, DESTINATION} from '../test.helpers';
+import dirSize from '../../src/helpers/space';
 import Recorder, { RecorderEvents, RecorderError } from '../../src/recorder';
+// import transformDirSizeThreshold from '../../src/helpers/sizeThreshold';
 
 jest.mock('../../src/validators');
-jest.mock('../../src/helpers');
+jest.mock('../../src/helpers/space');
+// jest.mock('../../src/helpers/sizeThreshold');
 
 let fakeProcess: ChildProcessWithoutNullStreams;
 let onSpaceFull: () => void;
@@ -17,12 +19,15 @@ beforeEach(() => {
 	onSpaceFull = jest.fn().mockName('onSpaceFull');
 });
 
-test('should not evaluate space if "threshold" is undefined', () => {
+test('should not evaluate space if "threshold" is undefined', async () => {
 	mocked(dirSize).mockReturnValue(Infinity);
 
 	new Recorder(URI, DESTINATION)
 		.on(RecorderEvents.SPACE_FULL, onSpaceFull)
 		.start();
+
+	// We have to wait next tick
+	await Promise.resolve(true);
 
 	fakeProcess.stderr.emit('data', Buffer.from('Opening \'segment.mp4\' for writing', 'utf8'));
 
@@ -30,18 +35,37 @@ test('should not evaluate space if "threshold" is undefined', () => {
 	expect(onSpaceFull).toBeCalledTimes(0);
 });
 
-test('should evaluate space and rise an event if "used" is close to the "threshold"', () => {
-	const dirSizeThreshold = 500;
-	mocked(transformDirSizeThreshold).mockReturnValue(dirSizeThreshold);
-	mocked(dirSize).mockReturnValue(496);
-	const onStop = jest.fn().mockName('onStop');
+test('should evaluate space but not rise an event if "used" is less than the "threshold"', async () => {
+	mocked(dirSize).mockReturnValue(300);
+	const onStopped = jest.fn().mockName('onStopped');
 
-	new Recorder(URI, DESTINATION, { dirSizeThreshold })
+	new Recorder(URI, DESTINATION, { dirSizeThreshold: 500 })
 		.on(RecorderEvents.SPACE_FULL, onSpaceFull)
-		.on(RecorderEvents.STOP, onStop)
+		.on(RecorderEvents.STOPPED, onStopped)
 		.start();
 
+	// We have to wait next tick
+	await Promise.resolve(true);
+
 	fakeProcess.stderr.emit('data', Buffer.from('Opening \'segment.mp4\' for writing', 'utf8'));
+
+	// dirSize called twice - 1st on start 2nd on opening segment for writing
+	expect(dirSize).toBeCalledTimes(2);
+	expect(onSpaceFull).toBeCalledTimes(0);
+	expect(onStopped).toBeCalledTimes(0);
+});
+
+test('should evaluate space on start and rise an event if "used" is close to the "threshold"', async () => {
+	mocked(dirSize).mockReturnValue(496);
+	const onStopped = jest.fn().mockName('onStopped');
+
+	new Recorder(URI, DESTINATION, { dirSizeThreshold: 500 })
+		.on(RecorderEvents.SPACE_FULL, onSpaceFull)
+		.on(RecorderEvents.STOPPED, onStopped)
+		.start();
+
+	// We have to wait next tick
+	await Promise.resolve(true);
 
 	expect(dirSize).toBeCalledTimes(1);
 	expect(onSpaceFull).toBeCalledTimes(1);
@@ -49,39 +73,71 @@ test('should evaluate space and rise an event if "used" is close to the "thresho
 		threshold: 500,
 		used: 496,
 	});
+	expect(onStopped).toBeCalledTimes(1);
+	expect(onStopped).toBeCalledWith(0, 'space_full');
+});
+
+test('should evaluate space on start and rise an event if "used" is bigger than the "threshold"', async () => {
+	mocked(dirSize).mockReturnValue(600);
+	const onStopped = jest.fn().mockName('onStopped');
+
+	new Recorder(URI, DESTINATION, { dirSizeThreshold: 500 })
+		.on(RecorderEvents.SPACE_FULL, onSpaceFull)
+		.on(RecorderEvents.STOPPED, onStopped)
+		.start();
+
+	// We have to wait next tick
+	await Promise.resolve(true);
+
+	expect(dirSize).toBeCalledTimes(1);
+	expect(onSpaceFull).toBeCalledTimes(1);
+	expect(onSpaceFull).toBeCalledWith({
+		threshold: 500,
+		used: 600,
+	});
+	expect(onStopped).toBeCalledTimes(1);
+	expect(onStopped).toBeCalledWith(0, 'space_full');
+});
+
+test('should evaluate space twice and rise an event if "used" became bigger than the "threshold" at progress', async () => {
+	mocked(dirSize).mockReturnValueOnce(200);
+	const onStop = jest.fn().mockName('onStop');
+
+	new Recorder(URI, DESTINATION, { dirSizeThreshold: 500 })
+		.on(RecorderEvents.SPACE_FULL, onSpaceFull)
+		.on(RecorderEvents.STOP, onStop)
+		.start();
+
+	// We have to wait next tick
+	await Promise.resolve(true);
+
+	mocked(dirSize).mockReturnValueOnce(600);
+
+	fakeProcess.stderr.emit('data', Buffer.from('Opening \'segment.mp4\' for writing', 'utf8'));
+
+	expect(dirSize).toBeCalledTimes(2);
+	expect(onSpaceFull).toBeCalledTimes(1);
+	expect(onSpaceFull).toBeCalledWith({
+		threshold: 500,
+		used: 600,
+	});
 	expect(onStop).toBeCalledTimes(1);
 	expect(onStop).toBeCalledWith('space_full');
 });
 
-test('should evaluate space but do not rise an event if "used" is far from the "threshold"', () => {
-	const dirSizeThreshold = 500;
-	mocked(transformDirSizeThreshold).mockReturnValue(dirSizeThreshold);
-	mocked(dirSize).mockReturnValue(400);
-
-	new Recorder(URI, DESTINATION, { dirSizeThreshold })
-		.on(RecorderEvents.SPACE_FULL, onSpaceFull)
-		.start();
-
-	fakeProcess.stderr.emit('data', Buffer.from('Opening \'segment.mp4\' for writing', 'utf8'));
-
-	expect(dirSize).toBeCalledTimes(1);
-	expect(onSpaceFull).toBeCalledTimes(0);
-});
-
-test('should return RecorderError - space evaluation failed', () => {
-	const dirSizeThreshold = 500;
-	mocked(transformDirSizeThreshold).mockReturnValue(dirSizeThreshold);
+test('should return RecorderError - space evaluation failed', async () => {
 	mocked(dirSize).mockImplementation(() => {
 		throw new Error('space evaluation failed');
 	});
 	const onError = jest.fn().mockName('onError');
 
-	new Recorder(URI, DESTINATION, { dirSizeThreshold })
+	new Recorder(URI, DESTINATION, { dirSizeThreshold: 500 })
 		.on(RecorderEvents.SPACE_FULL, onSpaceFull)
 		.on(RecorderEvents.ERROR, onError)
 		.start();
 
-	fakeProcess.stderr.emit('data', Buffer.from('Opening \'segment.mp4\' for writing', 'utf8'));
+	// We have to wait next tick
+	await Promise.resolve(true);
 
 	expect(dirSize).toBeCalledTimes(1);
 	expect(onSpaceFull).toBeCalledTimes(0);

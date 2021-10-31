@@ -16,10 +16,13 @@ beforeEach(() => {
 	eventHandler = jest.fn().mockName('onProgress');
 });
 
-test('should return any ffmpeg progress message', () => {
+test('should return any ffmpeg progress message', async () => {
 	new Recorder(URI, DESTINATION)
 		.on(RecorderEvents.PROGRESS, eventHandler)
 		.start();
+
+	// We have to wait next tick
+	await Promise.resolve(true);
 
 	fakeProcess.stderr.emit('data', Buffer.from('Random progress message', 'utf8'));
 

@@ -23,17 +23,25 @@ test('should throw RecorderValidationError if validation failed', () => {
 });
 
 describe('isRecording', () => {
-	test('should return true if process started', () => {
-		const isRecording = new Recorder(URI, DESTINATION)
-			.start()
-			.isRecording();
+	test('should return true if process started', async () => {
+		const recorder = new Recorder(URI, DESTINATION)
+			.start();
+
+		// We have to wait next tick
+		await Promise.resolve(true);
+
+		const isRecording = recorder.isRecording();
 
 		expect(isRecording).toBe(true);
 	});
 
-	test('should return false if process not started', () => {
-		const isRecording = new Recorder(URI, DESTINATION)
-			.isRecording();
+	test('should return false if process not started', async () => {
+		const recorder = new Recorder(URI, DESTINATION);
+
+		// We have to wait next tick
+		await Promise.resolve(true);
+
+		const isRecording = recorder.isRecording();
 
 		expect(isRecording).toBe(false);
 	});

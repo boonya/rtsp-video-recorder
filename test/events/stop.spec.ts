@@ -15,16 +15,19 @@ beforeEach(() => {
 	onStopped = jest.fn().mockName('onStopped');
 });
 
-test('should return "programmatically" if .stop() executed', () => {
+test('should return "programmatically" if .stop() executed', async () => {
 	new Recorder(URI, DESTINATION)
 		.on(RecorderEvents.STOP, onStop)
 		.on(RecorderEvents.STOPPED, onStopped)
 		.start()
 		.stop();
 
+	// We have to wait next tick
+	await Promise.resolve(true);
+
 	expect(onStop).toBeCalledTimes(1);
 	expect(onStop).toBeCalledWith('programmatically');
 
 	expect(onStopped).toBeCalledTimes(1);
-	expect(onStopped).toBeCalledWith(expect.any(Number), expect.stringMatching(/FFMPEG exited\. Code \d+\./u));
+	expect(onStopped).toBeCalledWith(expect.any(Number), 'ffmpeg_exited');
 });

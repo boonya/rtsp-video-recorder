@@ -56,13 +56,23 @@ recorder.on(RecorderEvents.START, (payload) => {
 
 #### `stop` event
 
+Normal stop
+
 ```ts
 recorder.on(RecorderEvents.STOP, (payload) => {
   assert.equal(payload, 'programmatically');
 });
 ```
 
-or
+If space full
+
+```ts
+recorder.on(RecorderEvents.STOP, (payload) => {
+  assert.equal(payload, 'space_full');
+});
+```
+
+In case of other errors
 
 ```ts
 recorder.on(RecorderEvents.STOP, (payload) => {
@@ -94,11 +104,11 @@ recorder.on(RecorderEvents.STARTED, (payload) => {
 
 #### `stopped` event
 
-If stopped programmatically handler receives 0 exit code & reason message that it stopped programmatically.
+If stopped because of space full handler receives 0 exit code & reason message 'space_full'.
 
 ```ts
 recorder.on(RecorderEvents.STOPPED, (payload) => {
-  assert.equal(payload, 0, 'Programmatically stopped.');
+  assert.equal(payload, 0, 'space_full');
 });
 ```
 
@@ -106,7 +116,7 @@ Or if stop reason is FFMPEG process exited, handler receives an exit code of ffm
 
 ```ts
 recorder.on(RecorderEvents.STOPPED, (payload) => {
-  assert.equal(payload, 255, 'FFMPEG exited. Code 255.');
+  assert.equal(payload, 255, 'ffmpeg_exited');
 });
 ```
 

@@ -1,9 +1,11 @@
-import { EventEmitter } from 'events';
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { EventEmitter } from 'events';
 import { IRecorder, Options, Events, EventCallback } from './types';
 import { RecorderError, RecorderValidationError } from './error';
 import { verifyAllOptions } from './validators';
-import {transformSegmentTime, transformDirSizeThreshold, dirSize} from './helpers';
+import dirSize from './helpers/space';
+import transformDirSizeThreshold from './helpers/sizeThreshold';
+import transformSegmentTime from './helpers/segmentTime';
 
 export {Recorder, Events as RecorderEvents, RecorderError, RecorderValidationError};
 export type { IRecorder };
@@ -92,7 +94,7 @@ export default class Recorder implements IRecorder {
 			}
 
 			if (!this.isSpaceEnough()) {
-				this.eventEmitter.emit(Events.STOPPED, 'space_full');
+				this.eventEmitter.emit(Events.STOPPED, 0, 'space_full');
 				return;
 			}
 
@@ -135,14 +137,17 @@ export default class Recorder implements IRecorder {
 			});
 
 			this.process.on('close', (code: string) => {
-				this.eventEmitter.emit(Events.STOPPED, code, `FFMPEG exited. Code ${code}.`);
+				this.eventEmitter.emit(Events.STOPPED, code, 'ffmpeg_exited');
 			});
 		} catch (err) {
 			this.eventEmitter.emit(Events.ERROR, err);
 		}
 	};
 
-	private stopRecord = () => {
+	private stopRecord = async () => {
+		// We have to wait next tick
+		await Promise.resolve(true);
+
 		if (!this.process) {
 			this.eventEmitter.emit(Events.ERROR, new RecorderError('No process spawned.'));
 			return;
