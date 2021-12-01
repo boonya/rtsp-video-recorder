@@ -2,6 +2,11 @@
 
 All notable changes to this project should be documented in this file.
 
+## [2.0.2-beta.1] - Bugfix & update
+
+- [Issue #170](https://github.com/boonya/rtsp-video-recorder/issues/170) acknowledged, investigated and fixed
+- Dev dependencies updated
+
 ## [2.0.1-alpha.6] - Several bugfixes and improvements
 
 - Verify disc space on "start" as well. Recording is not going to start if space not enough.
@@ -47,6 +52,7 @@ Nothing really interesting so far.
 
 - `RecorderValidationError` throws an errors list in addition to just a message.
 
+[2.0.2-beta.1]: https://github.com/boonya/rtsp-video-recorder/compare/2.0.1-alpha.6...2.0.2-beta.1
 [2.0.1-alpha.6]: https://github.com/boonya/rtsp-video-recorder/compare/2.0.0-alpha.5...2.0.1-alpha.6
 [2.0.0-alpha.5]: https://github.com/boonya/rtsp-video-recorder/compare/1.4.0-alpha.4...2.0.0-alpha.5
 [1.4.0-alpha.4]: https://github.com/boonya/rtsp-video-recorder/compare/1.4.0-alpha.3...1.4.0-alpha.4
