@@ -55,7 +55,7 @@ test('should return default options + playlist', async () => {
 test('should return custom options + playlist', async () => {
 	new Recorder(URI, DESTINATION, {
 		title: 'Test Cam',
-		filePattern: '%Y %B %d/%I.%M.%S%p',
+		filePattern: '%Y:%B  %d/%I %M: %S%p',
 		dirSizeThreshold: '500M',
 		segmentTime: '1h',
 		noAudio: true,
@@ -74,7 +74,7 @@ test('should return custom options + playlist', async () => {
 		uri: URI,
 		destination: DESTINATION,
 		title: 'Test Cam',
-		filePattern: '%Y %B %d/%I.%M.%S%p',
+		filePattern: '%Y_%B_%d/%I_%M_%S%p',
 		playlist: 'playlist.m3u8',
 		dirSizeThreshold: 524288000,
 		segmentTime: 3600,
