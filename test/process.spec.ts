@@ -1,4 +1,3 @@
-import { mocked } from 'ts-jest/utils';
 import {mockSpawnProcess, URI, DESTINATION} from './test.helpers';
 import Recorder from '../src/recorder';
 import { verifyAllOptions } from '../src/validators';
@@ -7,7 +6,7 @@ import { Options } from '../src/types';
 jest.mock('../src/validators');
 
 beforeEach(() => {
-	mocked(verifyAllOptions).mockReturnValue([]);
+	jest.mocked(verifyAllOptions).mockReturnValue([]);
 });
 
 it('Spawn arguments with no additional options defined', () => {

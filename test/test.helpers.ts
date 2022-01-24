@@ -1,5 +1,4 @@
 import { EventEmitter } from 'events';
-import { mocked } from 'ts-jest/utils';
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import path from 'path';
 
@@ -26,7 +25,7 @@ export function mockSpawnProcess (options: MockSpawnProcessOptions = {}) {
 		return true;
 	};
 
-	mocked(spawn).mockImplementation((...args) => {
+	jest.mocked(spawn).mockImplementation((...args) => {
 		onSpawn(...args);
 		return proc;
 	});
