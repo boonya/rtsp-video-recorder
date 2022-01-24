@@ -2,6 +2,10 @@
 
 All notable changes to this project should be documented in this file.
 
+## [2.0.3] - Bugfix & update
+
+- [Issue #195](https://github.com/boonya/rtsp-video-recorder/issues/195) acknowledged, investigated and fixed
+
 ## [2.0.2-beta.1] - Bugfix & update
 
 - [Issue #170](https://github.com/boonya/rtsp-video-recorder/issues/170) acknowledged, investigated and fixed

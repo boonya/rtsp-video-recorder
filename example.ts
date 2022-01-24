@@ -28,6 +28,7 @@ try {
 		NO_AUDIO,
 		DESTINATION,
 		SHOW_PROGRESS,
+		PLAYLIST_NAME,
 	} = process.env;
 
 	if (!DESTINATION || (!SOURCE && !IP) || (SOURCE && IP)) {
@@ -48,6 +49,7 @@ try {
 			title,
 			segmentTime,
 			filePattern,
+			playlistName: PLAYLIST_NAME,
 			dirSizeThreshold,
 			noAudio,
 		},
