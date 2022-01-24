@@ -1,4 +1,3 @@
-import { mocked } from 'ts-jest/utils';
 import { verifyAllOptions } from '../src/validators';
 import {mockSpawnProcess, URI, DESTINATION} from './test.helpers';
 import Recorder, { RecorderValidationError } from '../src/recorder';
@@ -6,12 +5,12 @@ import Recorder, { RecorderValidationError } from '../src/recorder';
 jest.mock('../src/validators');
 
 beforeEach(() => {
-	mocked(verifyAllOptions).mockReturnValue([]);
+	jest.mocked(verifyAllOptions).mockReturnValue([]);
 	mockSpawnProcess();
 });
 
 test('should throw RecorderValidationError if validation failed', () => {
-	mocked(verifyAllOptions).mockReturnValue([
+	jest.mocked(verifyAllOptions).mockReturnValue([
 		'Any validation error message',
 		'One more validation error message',
 	]);

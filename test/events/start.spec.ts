@@ -1,4 +1,3 @@
-import { mocked } from 'ts-jest/utils';
 import { verifyAllOptions } from '../../src/validators';
 import {mockSpawnProcess, URI, DESTINATION} from '../test.helpers';
 import Recorder, { RecorderEvents } from '../../src/recorder';
@@ -8,7 +7,7 @@ jest.mock('../../src/validators');
 let onStart: () => void;
 
 beforeEach(() => {
-	mocked(verifyAllOptions).mockReturnValue([]);
+	jest.mocked(verifyAllOptions).mockReturnValue([]);
 	mockSpawnProcess();
 	onStart = jest.fn().mockName('onStart');
 });

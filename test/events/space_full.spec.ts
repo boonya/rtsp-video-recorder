@@ -1,26 +1,23 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
-import { mocked } from 'ts-jest/utils';
 import { verifyAllOptions } from '../../src/validators';
 import {mockSpawnProcess, URI, DESTINATION} from '../test.helpers';
 import dirSize from '../../src/helpers/space';
 import Recorder, { RecorderEvents, RecorderError } from '../../src/recorder';
-// import transformDirSizeThreshold from '../../src/helpers/sizeThreshold';
 
 jest.mock('../../src/validators');
 jest.mock('../../src/helpers/space');
-// jest.mock('../../src/helpers/sizeThreshold');
 
 let fakeProcess: ChildProcessWithoutNullStreams;
 let onSpaceFull: () => void;
 
 beforeEach(() => {
-	mocked(verifyAllOptions).mockReturnValue([]);
+	jest.mocked(verifyAllOptions).mockReturnValue([]);
 	fakeProcess = mockSpawnProcess();
 	onSpaceFull = jest.fn().mockName('onSpaceFull');
 });
 
 test('should not evaluate space if "threshold" is undefined', async () => {
-	mocked(dirSize).mockReturnValue(Infinity);
+	jest.mocked(dirSize).mockReturnValue(Infinity);
 
 	new Recorder(URI, DESTINATION)
 		.on(RecorderEvents.SPACE_FULL, onSpaceFull)
@@ -36,7 +33,7 @@ test('should not evaluate space if "threshold" is undefined', async () => {
 });
 
 test('should evaluate space but not rise an event if "used" is less than the "threshold"', async () => {
-	mocked(dirSize).mockReturnValue(300);
+	jest.mocked(dirSize).mockReturnValue(300);
 	const onStopped = jest.fn().mockName('onStopped');
 
 	new Recorder(URI, DESTINATION, { dirSizeThreshold: 500 })
@@ -56,7 +53,7 @@ test('should evaluate space but not rise an event if "used" is less than the "th
 });
 
 test('should evaluate space on start and rise an event if "used" is close to the "threshold"', async () => {
-	mocked(dirSize).mockReturnValue(496);
+	jest.mocked(dirSize).mockReturnValue(496);
 	const onStopped = jest.fn().mockName('onStopped');
 
 	new Recorder(URI, DESTINATION, { dirSizeThreshold: 500 })
@@ -78,7 +75,7 @@ test('should evaluate space on start and rise an event if "used" is close to the
 });
 
 test('should evaluate space on start and rise an event if "used" is bigger than the "threshold"', async () => {
-	mocked(dirSize).mockReturnValue(600);
+	jest.mocked(dirSize).mockReturnValue(600);
 	const onStopped = jest.fn().mockName('onStopped');
 
 	new Recorder(URI, DESTINATION, { dirSizeThreshold: 500 })
@@ -100,7 +97,7 @@ test('should evaluate space on start and rise an event if "used" is bigger than 
 });
 
 test('should evaluate space twice and rise an event if "used" became bigger than the "threshold" at progress', async () => {
-	mocked(dirSize).mockReturnValueOnce(200);
+	jest.mocked(dirSize).mockReturnValueOnce(200);
 	const onStop = jest.fn().mockName('onStop');
 
 	new Recorder(URI, DESTINATION, { dirSizeThreshold: 500 })
@@ -111,7 +108,7 @@ test('should evaluate space twice and rise an event if "used" became bigger than
 	// We have to wait next tick
 	await Promise.resolve(true);
 
-	mocked(dirSize).mockReturnValueOnce(600);
+	jest.mocked(dirSize).mockReturnValueOnce(600);
 
 	fakeProcess.stderr.emit('data', Buffer.from('Opening \'segment.mp4\' for writing', 'utf8'));
 
@@ -126,7 +123,7 @@ test('should evaluate space twice and rise an event if "used" became bigger than
 });
 
 test('should return RecorderError - space evaluation failed', async () => {
-	mocked(dirSize).mockImplementation(() => {
+	jest.mocked(dirSize).mockImplementation(() => {
 		throw new Error('space evaluation failed');
 	});
 	const onError = jest.fn().mockName('onError');

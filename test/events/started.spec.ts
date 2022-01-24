@@ -1,5 +1,4 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
-import { mocked } from 'ts-jest/utils';
 import { verifyAllOptions } from '../../src/validators';
 import {mockSpawnProcess, URI, DESTINATION} from '../test.helpers';
 import Recorder, { RecorderEvents } from '../../src/recorder';
@@ -12,10 +11,10 @@ let fakeProcess: ChildProcessWithoutNullStreams;
 let eventHandler: () => void;
 
 beforeEach(() => {
-	mocked(verifyAllOptions).mockReturnValue([]);
+	jest.mocked(verifyAllOptions).mockReturnValue([]);
 	fakeProcess = mockSpawnProcess();
 	eventHandler = jest.fn().mockName('onStarted');
-	mocked(dirSize).mockReturnValue(0);
+	jest.mocked(dirSize).mockReturnValue(0);
 });
 
 const FFMPEG_MESSAGE = `[libx264 @ 0x148816200] 264 - core 163 r3060 5db6aa6 - H.264/MPEG-4 AVC codec - Copyleft 2003-2021 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=15 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=23.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00

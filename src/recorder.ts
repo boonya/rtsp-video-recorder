@@ -103,22 +103,19 @@ export default class Recorder implements IRecorder {
 				.on(Events.SPACE_FULL, this.onSpaceFull)
 				.on(Events.STOPPED, this.onStopped);
 
-			const playlistName = `${this.playlistName}.m3u8`;
-			const segmentNamePattern = `${this.filePattern}.mp4`;
-
 			this.process = spawn(this.ffmpegBinary,
 				[
 					'-rtsp_transport', 'tcp',
 					'-i', this.uri,
 					'-reset_timestamps', '1',
-					...(this.title ? ['-metadata', `title=${this.title}`] : []),
+					...(this.title ? ['-metadata', `title="${this.title}"`] : []),
 					...(this.noAudio ? ['-an'] : ['-c:a', 'aac']),
 					'-strftime', '1',
 					'-strftime_mkdir', '1',
 					'-hls_time', String(this.segmentTime),
 					'-hls_list_size', '0',
-					'-hls_segment_filename', segmentNamePattern,
-					`./${playlistName}`,
+					'-hls_segment_filename', `"${this.filePattern}.mp4"`,
+					`"./${this.playlistName}.m3u8"`,
 				],
 				{
 					detached: false,
