@@ -7,10 +7,9 @@ on:
       tag:
         required: true
         type: string
+    secrets:
       NODE_AUTH_TOKEN:
         required: true
-        type: string
-    secrets: inherit
 
 jobs:
   publish:
@@ -25,4 +24,4 @@ jobs:
       - run: npm run build
       - run: npm publish --tag ${{ inputs.tag }}
         env:
-          NODE_AUTH_TOKEN: ${{ inputs.NODE_AUTH_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}

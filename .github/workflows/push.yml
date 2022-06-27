@@ -18,6 +18,7 @@ jobs:
     with:
       registry: "https://npm.pkg.github.com"
       tag: ${GITHUB_REF_NAME}
+    secrets:
       NODE_AUTH_TOKEN: ${{ secrets.GHCR_TOKEN_RW }}
 
   test-coverage:

@@ -14,4 +14,5 @@ jobs:
     with:
       registry: "https://registry.npmjs.org"
       tag: latest
+    secrets:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
