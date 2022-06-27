@@ -1,55 +1,17 @@
-name: Publishing 🚚
+name: "Release 🚀"
 
 on:
   release:
     types: [published]
 
 jobs:
-
-  lint:
-    name: Linting 🔎
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 16
-      - run: npm ci
-      - run: npm run eslint
-
-  types:
-    name: Type checking 🔎
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 16
-      - run: npm ci
-      - run: npm run types
-
-  test:
-    name: Test 🧪
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 16
-      - run: npm ci
-      - run: npm run test:coverage
+  verify:
+    uses: ./.github/workflows/verify.yml
 
   publish:
-    needs: [ lint, types, test ]
-    name: Build & publish 🚀
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 16
-      - run: npm ci
-      - run: npm run build
-      - uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
+    needs: [verify]
+    uses: ./.github/workflows/publish.yml
+    with:
+      registry: "https://registry.npmjs.org"
+      tag: latest
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

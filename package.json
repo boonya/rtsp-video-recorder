@@ -1,5 +1,5 @@
 {
-  "name": "rtsp-video-recorder",
+  "name": "@boonya/rtsp-video-recorder",
   "version": "2.0.3",
   "description": "Provide an API to record rtsp video stream to filesystem.",
   "main": "dist/recorder.js",
@@ -10,7 +10,7 @@
   "repository": "https://github.com/boonya/rtsp-video-recorder",
   "engines": {
     "npm": ">=7",
-    "node": ">=10"
+    "node": ">=12"
   },
   "scripts": {
     "example": "tsc -p tsconfig.example.json && node example/example.js",
