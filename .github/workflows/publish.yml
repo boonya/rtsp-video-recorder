@@ -10,6 +10,7 @@ on:
       NODE_AUTH_TOKEN:
         required: true
         type: string
+    secrets: inherit
 
 jobs:
   publish:
