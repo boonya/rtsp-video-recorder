@@ -1,0 +1,40 @@
+on:
+  workflow_call:
+
+jobs:
+  lint:
+    name: Linting 🔎
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: ".nvmrc"
+      - run: npm ci
+      - run: npm run eslint
+
+  types:
+    name: Type checking 🔎
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: ".nvmrc"
+      - run: npm ci
+      - run: npm run types
+
+  # test:
+  #   name: Testing on ${{ matrix.os }} -> node@${{ matrix.node }} 🧪
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-latest, macos-latest, windows-latest]
+  #       node: [16, 14, 12]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version: ${{ matrix.node }}
+  #     - run: npm ci
+  #     - run: npm run test

@@ -1,0 +1,24 @@
+on:
+  workflow_call:
+    # inputs:
+    #   tag:
+    #     required: true
+    #     type: string
+    # secrets:
+    #   GHCR_TOKEN_RW:
+    #     required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: ".nvmrc"
+          registry-url: "https://npm.pkg.github.com"
+      - run: npm ci
+      - run: npm run build
+      - run: npm publish --tag ${GITHUB_REF_NAME}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GHCR_TOKEN_RW }}

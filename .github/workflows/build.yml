@@ -1,0 +1,24 @@
+on:
+  workflow_call:
+
+jobs:
+  bundle:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: ".nvmrc"
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: |
+            CHANGELOG.md
+            dist
+            LICENSE
+            package-lock.json
+            package.json
+            README.md
+          if-no-files-found: error
