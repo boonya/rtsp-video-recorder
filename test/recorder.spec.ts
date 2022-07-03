@@ -1,12 +1,15 @@
 import { verifyAllOptions } from '../src/validators';
-import {mockSpawnProcess, URI, DESTINATION} from './test.helpers';
+import { mockSpawnProcess, URI, DESTINATION } from './test.helpers';
 import Recorder, { RecorderValidationError } from '../src/recorder';
+import playlistName from '../src/helpers/playlistName';
 
 jest.mock('../src/validators');
+jest.mock('../src/helpers/playlistName');
 
 beforeEach(() => {
 	jest.mocked(verifyAllOptions).mockReturnValue([]);
 	mockSpawnProcess();
+	jest.mocked(playlistName).mockReturnValue('playlist');
 });
 
 test('should throw RecorderValidationError if validation failed', () => {
