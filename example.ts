@@ -42,14 +42,15 @@ try {
 	const segmentTime = SEGMENT_TIME || '10m';
 	const dirSizeThreshold = THRESHOLD || '500M';
 	const noAudio = NO_AUDIO === 'true' ? true : false;
-	const filePattern = FILE_PATTERN || `${title}-%Y.%m.%d/%H.%M.%S`;
+	const filePattern = FILE_PATTERN || `${title.replace(/[^\w.-]+/ug, '_')}-%Y.%m.%d/%H.%M.%S`;
+	const playlistName = PLAYLIST_NAME || title.replace(/[^\w.-]+/ug, '_');
 
 	const recorder = new Recorder(source, DESTINATION,
 		{
 			title,
 			segmentTime,
 			filePattern,
-			playlistName: PLAYLIST_NAME,
+			playlistName,
 			dirSizeThreshold,
 			noAudio,
 		},
