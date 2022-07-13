@@ -13,7 +13,6 @@
     "node": ">=10"
   },
   "scripts": {
-    "postinstall": "npm run build",
     "example": "tsc -p tsconfig.example.json && node example/example.js",
     "types": "tsc --noemit",
     "eslint": "eslint .",
