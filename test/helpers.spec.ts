@@ -59,8 +59,8 @@ describe('playlistName', () => {
 	});
 
 	test('should return custom name.', () => {
-		const result = playlistName('custom name%:-_spec@%chars');
+		const result = playlistName('custom - name%:_"spec@%+!/]_[\\\'"chars');
 
-		expect(result).toBe('custom_name__spec_chars');
+		expect(result).toBe('custom_-_name_spec_chars');
 	});
 });
