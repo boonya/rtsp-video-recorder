@@ -235,9 +235,3 @@ _NOTE that option does not make sense if `dirSizeThreshold` option is not specif
 ### ffmpegBinary
 
 In case you need to specify a path to ffmpeg binary you can do it using this argument.
-
-## How to build docker image to check
-
-```bash
-docker build -t rtsp-video-recorder .
-```

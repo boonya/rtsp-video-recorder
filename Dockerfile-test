@@ -1,8 +1,0 @@
-FROM node:14.19.3-buster-slim
-
-WORKDIR /usr/src
-
-RUN apt-get update \
-	&& apt-get install -y ffmpeg
-
-CMD ["npm", "run example"]
