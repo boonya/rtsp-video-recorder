@@ -39,11 +39,14 @@ try {
 	const source = SOURCE || `rtsp://${IP}:554/user=admin_password=tlJwpbo6_channel=1_stream=1.sdp?real_stream`;
 
 	const title = TITLE || 'Example cam';
+	const safeTitle = title
+		.replace(/[:]+/ug, '_')
+		.replace(/_+/ug, '_');
 	const segmentTime = SEGMENT_TIME || '10m';
 	const dirSizeThreshold = THRESHOLD || '500M';
 	const noAudio = NO_AUDIO === 'true' ? true : false;
-	const filePattern = FILE_PATTERN || `${title.replace(/[^\w.-]+/ug, '_')}-%Y.%m.%d/%H.%M.%S`;
-	const playlistName = PLAYLIST_NAME || title.replace(/[^\w.-]+/ug, '_');
+	const filePattern = FILE_PATTERN || `${safeTitle}-%Y.%m.%d/%H.%M.%S`;
+	const playlistName = PLAYLIST_NAME || safeTitle;
 
 	const recorder = new Recorder(source, DESTINATION,
 		{
