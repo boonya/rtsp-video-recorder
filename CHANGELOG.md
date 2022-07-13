@@ -2,7 +2,7 @@
 
 All notable changes to this project should be documented in this file.
 
-## [2.1.0] - [Fix] Can't stop recording in a docker container
+## [2.2.0] - [Fix] Can't stop recording in a docker container
 
 **[Breaking change]**
 
