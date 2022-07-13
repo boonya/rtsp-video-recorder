@@ -2,7 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 function playlistName(customValue) {
     if (customValue) {
-        return customValue.replace(/[^\w.-]+/ug, '_').replace(/_+/ug, '_');
+        return customValue
+            .replace(/[:]+/ug, '_')
+            .replace(/_+/ug, '_');
     }
     const now = new Date();
     const [date] = now.toISOString().split('T');

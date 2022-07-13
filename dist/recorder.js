@@ -164,7 +164,9 @@ class Recorder {
         this.title = options.title;
         this.ffmpegBinary = options.ffmpegBinary || this.ffmpegBinary;
         this.playlistName = (0, playlistName_1.default)(options.playlistName);
-        this.filePattern = (options.filePattern || this.filePattern).replace(/(?:[\s:]+)/gu, '_');
+        this.filePattern = (options.filePattern || this.filePattern)
+            .replace(/[\s:]+/gu, '_')
+            .replace(/_+/ug, '_');
         this.segmentTime = options.segmentTime
             ? (0, segmentTime_1.default)(options.segmentTime)
             : this.segmentTime;
