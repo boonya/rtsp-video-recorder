@@ -115,7 +115,7 @@ export default class Recorder implements IRecorder {
 					'-strftime_mkdir', '1',
 					'-hls_time', String(this.segmentTime),
 					'-hls_list_size', '0',
-					'-hls_segment_filename', `"${this.filePattern}.mp4"`,
+					'-hls_segment_filename', `${this.filePattern}.mp4`,
 					`./${this.playlistName}.m3u8`,
 				],
 				{

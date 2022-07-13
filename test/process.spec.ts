@@ -24,7 +24,7 @@ it('Spawn arguments with no additional options defined', () => {
 			'-strftime_mkdir', '1',
 			'-hls_time', '600',
 			'-hls_list_size', '0',
-			'-hls_segment_filename', '"%Y.%m.%d/%H.%M.%S.mp4"',
+			'-hls_segment_filename', '%Y.%m.%d/%H.%M.%S.mp4',
 			'./playlist.m3u8',
 		]);
 		expect(options).toEqual({ detached: false, cwd: DESTINATION });
@@ -49,7 +49,7 @@ it('Spawn arguments with options defined', () => {
 			'-strftime_mkdir', '1',
 			'-hls_time', '1000',
 			'-hls_list_size', '0',
-			'-hls_segment_filename', '"%Y.%m.%d/%H.%M.%S.mp4"',
+			'-hls_segment_filename', '%Y.%m.%d/%H.%M.%S.mp4',
 			'./playlist.m3u8',
 		]);
 		expect(options).toEqual({ detached: false, cwd: DESTINATION });
