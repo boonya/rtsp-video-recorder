@@ -1,13 +1,14 @@
 export default function playlistName(customValue?: string) {
 	if (customValue) {
-		return customValue;
+		return customValue.replace(/[^\w]+/ug, '_');
 	}
-	const date = new Date();
-	const Y = date.getFullYear();
-	const m = date.getMonth() + 1;
-	const d = date.getDate();
-	const H = date.getHours();
-	const M = date.getMinutes();
-	const S = date.getSeconds();
-	return `${Y}.${m}.${d}-${H}.${M}.${S}}`;
+
+	const now = new Date();
+	const [date] = now.toISOString().split('T');
+	const [time] = now.toTimeString().split(' ');
+
+	return [
+		date.replace(/-/ug, '.'),
+		time.replace(/:/ug, '.'),
+	].join('-');
 }

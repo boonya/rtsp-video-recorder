@@ -3,13 +3,14 @@ import dirSize from '../src/helpers/space';
 import fs from 'fs';
 import transformDirSizeThreshold from '../src/helpers/sizeThreshold';
 import transformSegmentTime from '../src/helpers/segmentTime';
+import playlistName from '../src/helpers/playlistName';
 
 jest.mock('fs');
 jest.mock('path');
 
 describe('directoryExists', () => {
 	test('exists', () => {
-		jest.mocked(fs).lstatSync.mockReturnValue({isDirectory: () => true});
+		jest.mocked(fs).lstatSync.mockReturnValue({ isDirectory: () => true });
 
 		expect(directoryExists('path')).toBeTruthy();
 	});
@@ -23,7 +24,7 @@ describe('directoryExists', () => {
 	});
 
 	test('not a directory', () => {
-		jest.mocked(fs).lstatSync.mockReturnValue({isDirectory: () => false});
+		jest.mocked(fs).lstatSync.mockReturnValue({ isDirectory: () => false });
 
 		expect(() => directoryExists('path')).toThrowError('path exists but it is not a directory.');
 	});
@@ -41,9 +42,25 @@ test('transformSegmentTime', () => {
 
 test('should return directory size in bytes', () => {
 	jest.mocked(fs).readdirSync.mockReturnValue(new Array(3).fill(0));
-	jest.mocked(fs).statSync.mockReturnValue({isDirectory: () => false, size: 3});
+	jest.mocked(fs).statSync.mockReturnValue({ isDirectory: () => false, size: 3 });
 
 	const size = dirSize('');
 
 	expect(size).toEqual(9);
+});
+
+describe('playlistName', () => {
+	test('should return current date based name.', () => {
+		jest.useFakeTimers().setSystemTime(new Date('Feb 24 2022 04:45:00').getTime());
+
+		const result = playlistName();
+
+		expect(result).toBe('2022.02.24-04.45.00');
+	});
+
+	test('should return custom name.', () => {
+		const result = playlistName('custom name%:-_spec@%chars');
+
+		expect(result).toBe('custom_name__spec_chars');
+	});
 });

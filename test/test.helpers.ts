@@ -13,7 +13,7 @@ type MockSpawnProcessOptions = {
 export const URI = 'rtsp://username:password@host/path';
 export const DESTINATION = path.normalize('/media/Recorder');
 
-export function mockSpawnProcess (options: MockSpawnProcessOptions = {}) {
+export function mockSpawnProcess(options: MockSpawnProcessOptions = {}) {
 	const onSpawn = options.onSpawn || (() => null);
 
 	// @ts-ignore

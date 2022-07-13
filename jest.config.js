@@ -11,4 +11,5 @@ module.exports = {
 			isolatedModules: true,
 		},
 	},
+	globalSetup: './test/global-setup.js',
 };
