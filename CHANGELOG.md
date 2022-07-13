@@ -2,6 +2,12 @@
 
 All notable changes to this project should be documented in this file.
 
+## [2.1.0] - [Fix] Can't stop recording in a docker container
+
+**[Breaking change]**
+
+If you were rely on `playlistName` option that it was able to accept value like `$(date +%Y.%m.%d-%H.%M.%S)`, now it doesn't work. You have to prepare dynamic value somewhere in your code before you pass it into Recorder instance. But by default `playlistName` still dynamic and completely the same. So, you code should work with no changes and issues.
+
 ## [2.0.3] - Bugfix & update
 
 - [Issue #195](https://github.com/boonya/rtsp-video-recorder/issues/195) acknowledged, investigated and fixed

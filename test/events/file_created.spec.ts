@@ -2,8 +2,10 @@ import { ChildProcessWithoutNullStreams } from 'child_process';
 import { verifyAllOptions } from '../../src/validators';
 import {mockSpawnProcess, URI, DESTINATION} from '../test.helpers';
 import Recorder, { RecorderEvents } from '../../src/recorder';
+import playlistName from '../../src/helpers/playlistName';
 
 jest.mock('../../src/validators');
+jest.mock('../../src/helpers/playlistName');
 
 let fakeProcess: ChildProcessWithoutNullStreams;
 let eventHandler: () => void;
@@ -12,6 +14,7 @@ beforeEach(() => {
 	jest.mocked(verifyAllOptions).mockReturnValue([]);
 	fakeProcess = mockSpawnProcess();
 	eventHandler = jest.fn().mockName('onFileCreated');
+	jest.mocked(playlistName).mockReturnValue('playlist');
 });
 
 test('should return filename if ffmpeg says: "Opening \'*.mp4\' for writing"', async () => {
