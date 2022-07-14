@@ -1,11 +1,13 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { verifyAllOptions } from '../../src/validators';
-import {mockSpawnProcess, URI, DESTINATION} from '../test.helpers';
+import { mockSpawnProcess, URI, DESTINATION } from '../test.helpers';
 import dirSize from '../../src/helpers/space';
 import Recorder, { RecorderEvents, RecorderError } from '../../src/recorder';
+import playlistName from '../../src/helpers/playlistName';
 
 jest.mock('../../src/validators');
 jest.mock('../../src/helpers/space');
+jest.mock('../../src/helpers/playlistName');
 
 let fakeProcess: ChildProcessWithoutNullStreams;
 let onSpaceFull: () => void;
@@ -14,6 +16,7 @@ beforeEach(() => {
 	jest.mocked(verifyAllOptions).mockReturnValue([]);
 	fakeProcess = mockSpawnProcess();
 	onSpaceFull = jest.fn().mockName('onSpaceFull');
+	jest.mocked(playlistName).mockReturnValue('playlist');
 });
 
 test('should not evaluate space if "threshold" is undefined', async () => {

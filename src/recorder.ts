@@ -4,10 +4,11 @@ import { IRecorder, Options, Events, EventCallback } from './types';
 import { RecorderError, RecorderValidationError } from './error';
 import { verifyAllOptions } from './validators';
 import dirSize from './helpers/space';
+import playlistName from './helpers/playlistName';
 import transformDirSizeThreshold from './helpers/sizeThreshold';
 import transformSegmentTime from './helpers/segmentTime';
 
-export {Recorder, Events as RecorderEvents, RecorderError, RecorderValidationError};
+export { Recorder, Events as RecorderEvents, RecorderError, RecorderValidationError };
 export type { IRecorder };
 
 const APPROXIMATION_PERCENTAGE = 1;
@@ -35,7 +36,7 @@ export default class Recorder implements IRecorder {
 	private process: ChildProcessWithoutNullStreams | null = null;
 	private eventEmitter: EventEmitter;
 
-	constructor (private uri: string, private destination: string, options: Options = {}) {
+	constructor(private uri: string, private destination: string, options: Options = {}) {
 		const errors = verifyAllOptions(destination, options);
 		if (errors.length) {
 			throw new RecorderValidationError('Options invalid', errors);
@@ -43,8 +44,10 @@ export default class Recorder implements IRecorder {
 
 		this.title = options.title;
 		this.ffmpegBinary = options.ffmpegBinary || this.ffmpegBinary;
-		this.playlistName = options.playlistName || '$(date +%Y.%m.%d-%H.%M.%S)';
-		this.filePattern = (options.filePattern || this.filePattern).replace(/(?:[\s:]+)/gu, '_');
+		this.playlistName = playlistName(options.playlistName);
+		this.filePattern = (options.filePattern || this.filePattern)
+			.replace(/[\s:]+/gu, '_')
+			.replace(/_+/ug, '_');
 
 		this.segmentTime = options.segmentTime
 			? transformSegmentTime(options.segmentTime)
@@ -114,12 +117,11 @@ export default class Recorder implements IRecorder {
 					'-strftime_mkdir', '1',
 					'-hls_time', String(this.segmentTime),
 					'-hls_list_size', '0',
-					'-hls_segment_filename', `"${this.filePattern}.mp4"`,
-					`"./${this.playlistName}.m3u8"`,
+					'-hls_segment_filename', `${this.filePattern}.mp4`,
+					`./${this.playlistName}.m3u8`,
 				],
 				{
 					detached: false,
-					shell: true,
 					cwd: this.destination,
 				},
 			);

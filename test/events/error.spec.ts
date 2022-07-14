@@ -1,9 +1,11 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { verifyAllOptions } from '../../src/validators';
-import {mockSpawnProcess, URI, DESTINATION} from '../test.helpers';
+import { mockSpawnProcess, URI, DESTINATION } from '../test.helpers';
 import Recorder, { RecorderEvents, RecorderError } from '../../src/recorder';
+import playlistName from '../../src/helpers/playlistName';
 
 jest.mock('../../src/validators');
+jest.mock('../../src/helpers/playlistName');
 
 let fakeProcess: ChildProcessWithoutNullStreams;
 let eventHandler: () => void;
@@ -12,6 +14,7 @@ beforeEach(() => {
 	jest.mocked(verifyAllOptions).mockReturnValue([]);
 	fakeProcess = mockSpawnProcess();
 	eventHandler = jest.fn().mockName('onError');
+	jest.mocked(playlistName).mockReturnValue('playlist');
 });
 
 test('should return RecorderError with message given by ffmpeg', async () => {
