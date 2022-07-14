@@ -18,14 +18,15 @@ jobs:
           node-version-file: ".nvmrc"
           registry-url: "https://npm.pkg.github.com"
       - run: |
+          VERSION=$(cat package.json | jq -r .version)-$GITHUB_SHA
           jq '.name = "@${{ github.repository }}"' package.json > tmp && mv tmp package.json
-          jq ".version = \"${GITHUB_SHA}\"" package.json > tmp && mv tmp package.json
+          jq ".version = \"${VERSION}\"" package.json > tmp && mv tmp package.json
           jq '.name = "@${{ github.repository }}"' package-lock.json > tmp && mv tmp package-lock.json
-          jq ".version = \"${GITHUB_SHA}\"" package-lock.json > tmp && mv tmp package-lock.json
+          jq ".version = \"${VERSION}\"" package-lock.json > tmp && mv tmp package-lock.json
           jq '.packages[""].name = "@${{ github.repository }}"' package-lock.json > tmp && mv tmp package-lock.json
-          jq ".packages[\"\"].version = \"${GITHUB_SHA}\"" package-lock.json > tmp && mv tmp package-lock.json
+          jq ".packages[\"\"].version = \"${VERSION}\"" package-lock.json > tmp && mv tmp package-lock.json
       - run: npm ci
       - run: npm run build
-      - run: npm publish --tag ${GITHUB_SHA}
+      - run: npm publish --tag ${GITHUB_REF_NAME}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GHCR_TOKEN_RW }}
