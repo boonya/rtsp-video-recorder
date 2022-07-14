@@ -13,6 +13,6 @@ jobs:
   #   uses: ./.github/workflows/verify.yml
 
   publish:
-    needs: [verify]
+    # needs: [verify]
     uses: ./.github/workflows/publish.yml
     secrets: inherit
