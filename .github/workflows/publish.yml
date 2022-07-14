@@ -14,7 +14,6 @@ jobs:
           VERSION=$(cat package.json | jq -r .version)-$GITHUB_SHA
           jq '.name = "@${{ github.repository }}"' package.json > tmp && mv tmp package.json
           jq ".version = \"${VERSION}\"" package.json > tmp && mv tmp package.json
-          jq ".publishConfig.tag = \"${GITHUB_REF_NAME}\"" package.json > tmp && mv tmp package.json
       - run: npm ci
       - run: npm run build
       - run: npm publish
