@@ -1,12 +1,5 @@
 on:
   workflow_call:
-    # inputs:
-    #   tag:
-    #     required: true
-    #     type: string
-    # secrets:
-    #   GHCR_TOKEN_RW:
-    #     required: true
 
 jobs:
   publish:
@@ -21,12 +14,9 @@ jobs:
           VERSION=$(cat package.json | jq -r .version)-$GITHUB_SHA
           jq '.name = "@${{ github.repository }}"' package.json > tmp && mv tmp package.json
           jq ".version = \"${VERSION}\"" package.json > tmp && mv tmp package.json
-          jq '.name = "@${{ github.repository }}"' package-lock.json > tmp && mv tmp package-lock.json
-          jq ".version = \"${VERSION}\"" package-lock.json > tmp && mv tmp package-lock.json
-          jq '.packages[""].name = "@${{ github.repository }}"' package-lock.json > tmp && mv tmp package-lock.json
-          jq ".packages[\"\"].version = \"${VERSION}\"" package-lock.json > tmp && mv tmp package-lock.json
+          jq ".publishConfig.tag = \"${GITHUB_REF_NAME}\"" package.json > tmp && mv tmp package.json
       - run: npm ci
       - run: npm run build
-      - run: npm publish --tag ${GITHUB_REF_NAME}
+      - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GHCR_TOKEN_RW }}
