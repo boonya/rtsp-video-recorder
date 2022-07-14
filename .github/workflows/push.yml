@@ -16,9 +16,3 @@ jobs:
     needs: [verify]
     uses: ./.github/workflows/publish.yml
     secrets: inherit
-
-  test-coverage:
-    needs: [verify]
-    if: github.ref == 'refs/heads/master'
-    uses: ./.github/workflows/test-coverage.yml
-    secrets: inherit
