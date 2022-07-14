@@ -18,9 +18,13 @@ jobs:
           node-version-file: ".nvmrc"
           registry-url: "https://npm.pkg.github.com"
       - run: jq '.name = "@${{ github.repository }}"' package.json > tmp && mv tmp package.json
-      - run: jq '.version = "${GITHUB_SHA}"' package.json > tmp && mv tmp package.json
+      - run: jq '.version = "${{ GITHUB_SHA }}"' package.json > tmp && mv tmp package.json
       - run: npm i
       - run: npm run build
+      - run: |
+          echo "Lets check it >>>"
+          ls -alh .
+          cat package.json
       - run: npm publish --tag ${GITHUB_REF_NAME}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GHCR_TOKEN_RW }}
