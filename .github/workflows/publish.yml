@@ -18,7 +18,7 @@ jobs:
           node-version-file: ".nvmrc"
           registry-url: "https://npm.pkg.github.com"
       - run: jq '.name = "@${{ github.repository }}"' package.json > tmp && mv tmp package.json
-      - run: jq '.version = "${{ GITHUB_SHA }}"' package.json > tmp && mv tmp package.json
+      - run: jq '.version = "${GITHUB_SHA}"' package.json > tmp && mv tmp package.json
       - run: npm i
       - run: npm run build
       - run: |
