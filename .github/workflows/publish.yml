@@ -26,11 +26,6 @@ jobs:
           jq ".packages[\"\"].version = \"${GITHUB_SHA}\"" package-lock.json > tmp && mv tmp package-lock.json
       - run: npm ci
       - run: npm run build
-      - run: |
-          echo "Lets check it >>>"
-          ls -alh .
-          cat package.json
-          cat package-lock.json
-      - run: npm publish --tag ${GITHUB_REF_NAME}
+      - run: npm publish --tag ${GITHUB_SHA}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GHCR_TOKEN_RW }}
