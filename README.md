@@ -214,7 +214,7 @@ By default the name is going to be `$(date +%Y.%m.%d-%H.%M.%S)` (e.g. `2020.01.0
 
 File path pattern. By default it is `%Y.%m.%d/%H.%M.%S` which will be translated to e.g. `2020.01.03/03.19.15`
 
-_Accepts C++ strftime specifiers:_ http://www.cplusplus.com/reference/ctime/strftime/
+[_Accepts C++ strftime specifiers:_](http://www.cplusplus.com/reference/ctime/strftime/)
 
 ### segmentTime
 

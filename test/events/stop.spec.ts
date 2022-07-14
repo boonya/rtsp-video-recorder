@@ -1,8 +1,10 @@
 import { verifyAllOptions } from '../../src/validators';
 import {mockSpawnProcess, URI, DESTINATION} from '../test.helpers';
 import Recorder, { RecorderEvents } from '../../src/recorder';
+import playlistName from '../../src/helpers/playlistName';
 
 jest.mock('../../src/validators');
+jest.mock('../../src/helpers/playlistName');
 
 let onStop: () => void;
 let onStopped: () => void;
@@ -12,6 +14,7 @@ beforeEach(() => {
 	mockSpawnProcess();
 	onStop = jest.fn().mockName('onStop');
 	onStopped = jest.fn().mockName('onStopped');
+	jest.mocked(playlistName).mockReturnValue('playlist');
 });
 
 test('should return "programmatically" if .stop() executed', async () => {
