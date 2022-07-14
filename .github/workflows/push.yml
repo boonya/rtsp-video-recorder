@@ -9,10 +9,10 @@ on:
     paths-ignore: ["**.md", "LICENSE"]
 
 jobs:
-  # verify:
-  #   uses: ./.github/workflows/verify.yml
+  verify:
+    uses: ./.github/workflows/verify.yml
 
   publish:
-    # needs: [verify]
+    needs: [verify]
     uses: ./.github/workflows/publish.yml
     secrets: inherit
