@@ -29,6 +29,7 @@ try {
 		DESTINATION,
 		SHOW_PROGRESS,
 		PLAYLIST_NAME,
+		FFMPEG_BINARY,
 	} = process.env;
 
 	if (!DESTINATION || (!SOURCE && !IP) || (SOURCE && IP)) {
@@ -48,16 +49,15 @@ try {
 	const filePattern = FILE_PATTERN || `${safeTitle}-%Y.%m.%d/%H.%M.%S`;
 	const playlistName = PLAYLIST_NAME || safeTitle;
 
-	const recorder = new Recorder(source, DESTINATION,
-		{
-			title,
-			segmentTime,
-			filePattern,
-			playlistName,
-			dirSizeThreshold,
-			noAudio,
-		},
-	);
+	const recorder = new Recorder(source, DESTINATION, {
+		title,
+		segmentTime,
+		filePattern,
+		playlistName,
+		dirSizeThreshold,
+		noAudio,
+		ffmpegBinary: FFMPEG_BINARY,
+	});
 
 	if (SHOW_PROGRESS) {
 		recorder.on(RecorderEvents.PROGRESS, logProgress);
