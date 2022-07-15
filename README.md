@@ -44,113 +44,13 @@ const recorder = new Recorder('rtsp://username:password@host/path', '/media/Reco
 });
 ```
 
-### Assign event handlers you need
+if you application is a CommonJs module you should be able do the same this way:
 
-#### `start` event
+```js
+const {Recorder, RecorderEvents} = require('rtsp-video-recorder');
 
-```ts
-recorder.on(RecorderEvents.START, (payload) => {
-  assert.equal(payload, 'programmatically');
-});
-```
-
-#### `stop` event
-
-Normal stop
-
-```ts
-recorder.on(RecorderEvents.STOP, (payload) => {
-  assert.equal(payload, 'programmatically');
-});
-```
-
-If space full
-
-```ts
-recorder.on(RecorderEvents.STOP, (payload) => {
-  assert.equal(payload, 'space_full');
-});
-```
-
-In case of other errors
-
-```ts
-recorder.on(RecorderEvents.STOP, (payload) => {
-  assert.equal(payload, 'error', Error);
-});
-```
-
-#### `started` event
-
-Handler receives an object that contains options applied to the current process
-
-- Default values if no options passed.
-- Converted values in case of some options if passed.
-
-```ts
-recorder.on(RecorderEvents.STARTED, (payload) => {
-  assert.equal(payload, {
-    uri: 'rtsp://username:password@host/path',
-    destination: '/media/Recorder',
-    playlist: 'playlist.m3u8',
-    title: 'Test Camera',
-    filePattern: '%Y.%m.%d/%H.%M.%S',
-    segmentTime: 600,
-    noAudio: false,
-    ffmpegBinary: 'ffmpeg',
-  });
-});
-```
-
-#### `stopped` event
-
-If stopped because of space full handler receives 0 exit code & reason message 'space_full'.
-
-```ts
-recorder.on(RecorderEvents.STOPPED, (payload) => {
-  assert.equal(payload, 0, 'space_full');
-});
-```
-
-Or if stop reason is FFMPEG process exited, handler receives an exit code of ffmpeg process and a message that FFMPEG exited.
-
-```ts
-recorder.on(RecorderEvents.STOPPED, (payload) => {
-  assert.equal(payload, 255, 'ffmpeg_exited');
-});
-```
-
-#### `file_created` event
-
-New file should be created when new segment started or in case of recording stopped.
-
-```ts
-recorder.on(RecorderEvents.FILE_CREATED, (payload) => {
-  assert.equal(payload, `2020.06.25/10.18.04.mp4`);
-});
-```
-
-#### `space_full` event
-
-If no space left an event should be emitted and payload raised.
-
-There is approximation percentage which is set to 1, so when you reach out 496 you'll have `space_full` event emitted if you set your threshold e.g. 500.
-In other words it works based on formula `Math.ceil(used + used * APPROXIMATION_PERCENTAGE / 100) > threshold` where `threshold` is you threshold valid and `used` is amount of space used.
-
-```ts
-recorder.on(RecorderEvents.SPACE_FULL, (payload) => {
-  assert.equal(payload, {
-    threshold: 500,
-    used: 496,
-  });
-});
-```
-
-#### `error` event
-
-```ts
-recorder.on(RecorderEvents.ERROR, () => {
-  /** Do what you need in case of recording error */
+const recorder = new Recorder('rtsp://username:password@host/path', '/media/Recorder', {
+  title: 'Test Camera',
 });
 ```
 
@@ -208,7 +108,7 @@ Title of video file. Used as metadata of video file.
 
 The name you want your playlist file to have.
 
-By default the name is going to be `$(date +%Y.%m.%d-%H.%M.%S)` (e.g. `2020.01.03-03.19.15`) which represents a time playlist have been created.
+By default the name is going to be a datetime string in a format `Y.m.d-H.M.S` (e.g. `2020.01.03-03.19.15`) which represents the time playlist have been created.
 
 ### filePattern
 
@@ -219,8 +119,8 @@ File path pattern. By default it is `%Y.%m.%d/%H.%M.%S` which will be translated
 ### segmentTime
 
 Duration of one video file (in seconds).
-600 seconds or 10 minutes by default if not defined.
-It can be a number of seconds or string xs, xm or xh what means amount of seconds, minutes or hours respectively.
+**600 seconds or 10 minutes by default** if not defined.
+It can be a number of seconds or string `xs`, `xm` or `xh` what means amount of **seconds**, **minutes** or **hours** respectively.
 
 ### noAudio
 
@@ -228,10 +128,125 @@ By default the process is going to record audio stream into a file but in case y
 
 ### dirSizeThreshold
 
-In case you have this option specified you will have ability to catch `SPACE_FULL` event when threshold is reached. It can be a number of bytes or string xM, xG or xT what means amount of Megabytes, Gigabytes or Terabytes respectively.
+In case you have this option specified you will have ability to catch `SPACE_FULL` event when threshold is reached. It can be a number of bytes or string `xM`, `xG` or `xT` what means amount of **Megabytes**, **Gigabytes** or **Terabytes** respectively.
 
 _NOTE that option does not make sense if `dirSizeThreshold` option is not specified._
 
 ### ffmpegBinary
 
 In case you need to specify a path to ffmpeg binary you can do it using this argument.
+
+## Events
+
+### `start` event
+
+```ts
+recorder.on(RecorderEvents.START, (payload) => {
+  assert.equal(payload, 'programmatically');
+});
+```
+
+### `stop` event
+
+Normal stop
+
+```ts
+recorder.on(RecorderEvents.STOP, (payload) => {
+  assert.equal(payload, 'programmatically');
+});
+```
+
+If space full
+
+```ts
+recorder.on(RecorderEvents.STOP, (payload) => {
+  assert.equal(payload, 'space_full');
+});
+```
+
+In case of other errors
+
+```ts
+recorder.on(RecorderEvents.STOP, (payload) => {
+  assert.equal(payload, 'error', Error);
+});
+```
+
+### `started` event
+
+Handler receives an object that contains options applied to the current process
+
+- Default values if no options passed.
+- Converted values in case of some options if passed.
+
+```ts
+recorder.on(RecorderEvents.STARTED, (payload) => {
+  assert.equal(payload, {
+    uri: 'rtsp://username:password@host/path',
+    destination: '/media/Recorder',
+    playlist: 'playlist.m3u8',
+    title: 'Test Camera',
+    filePattern: '%Y.%m.%d/%H.%M.%S',
+    segmentTime: 600,
+    noAudio: false,
+    ffmpegBinary: 'ffmpeg',
+  });
+});
+```
+
+### `stopped` event
+
+If stopped because of space full handler receives 0 exit code & reason message 'space_full'.
+
+```ts
+recorder.on(RecorderEvents.STOPPED, (payload) => {
+  assert.equal(payload, 0, 'space_full');
+});
+```
+
+Or if stop reason is FFMPEG process exited, handler receives an exit code of ffmpeg process and a message that FFMPEG exited.
+
+```ts
+recorder.on(RecorderEvents.STOPPED, (payload) => {
+  assert.equal(payload, 255, 'ffmpeg_exited');
+});
+```
+
+### `file_created` event
+
+New file should be created when new segment started or in case of recording stopped.
+
+```ts
+recorder.on(RecorderEvents.FILE_CREATED, (payload) => {
+  assert.equal(payload, `2020.06.25/10.18.04.mp4`);
+});
+```
+
+### `space_full` event
+
+If no space left an event should be emitted and payload raised.
+
+There is approximation percentage which is set to 1, so when you reach out 496 you'll have `space_full` event emitted if you set your threshold e.g. 500.
+In other words it works based on formula `Math.ceil(used + used * APPROXIMATION_PERCENTAGE / 100) > threshold` where `threshold` is you threshold valid and `used` is amount of space used.
+
+```ts
+recorder.on(RecorderEvents.SPACE_FULL, (payload) => {
+  assert.equal(payload, {
+    threshold: 500,
+    used: 496,
+  });
+});
+```
+
+### `error` event
+
+```ts
+recorder.on(RecorderEvents.ERROR, () => {
+  /** Do what you need in case of recording error */
+});
+```
+
+## Here you may see several examples of usage
+
+- [Express](https://github.com/boonya/rtsp-video-recorder/tree/master/docs/examples/express/)
+- [Meteor](https://github.com/boonya/meteor-recorder/blob/main/imports/api/recorder.js#L52)
