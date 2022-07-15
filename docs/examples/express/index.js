@@ -20,23 +20,13 @@ try {
 	});
 
 	app.get('/start', (req, res) => {
-		if (recorder.isRecording()) {
-			res.send('Recording is in process already.');
-		}
-		else {
-			recorder.start();
-			res.send('Recording has started.');
-		}
+		recorder.start();
+		res.send('Recording has started.');
 	});
 
 	app.get('/stop', (req, res) => {
-		if (recorder.isRecording()) {
-			recorder.stop();
-			res.send('Recording has stopped.');
-		}
-		else {
-			res.send('Recording is not in progress.');
-		}
+		recorder.stop();
+		res.send('Recording has stopped.');
 	});
 
 	app.listen(PORT, () => {
