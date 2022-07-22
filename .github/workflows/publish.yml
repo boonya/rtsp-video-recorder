@@ -11,10 +11,12 @@ jobs:
           node-version-file: ".nvmrc"
           registry-url: "https://npm.pkg.github.com"
       - run: |
+          HEAD_SHA='${{ github.event.pull_request.head.sha }}'
           echo "============================"
           echo $GITHUB_SHA
           echo $(git rev-parse HEAD)
-          echo ${{ github.event.pull_request.head.sha }}
+          echo HEAD_SHA=$HEAD_SHA
+          echo FALLBACK=$HEAD_SHA || $GITHUB_SHA
           echo "============================"
 
           NAME='@${{ github.repository }}'
