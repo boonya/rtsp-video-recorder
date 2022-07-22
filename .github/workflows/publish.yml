@@ -14,6 +14,7 @@ jobs:
           echo "============================"
           echo $GITHUB_SHA
           echo $(git rev-parse HEAD)
+          echo ${{ github.event.pull_request.head.sha }}
           echo "============================"
 
           NAME='@${{ github.repository }}'
