@@ -12,15 +12,9 @@ jobs:
           registry-url: "https://npm.pkg.github.com"
       - run: |
           PR_HEAD_SHA=${{ github.event.pull_request.head.shas }}
-          echo "============================"
-          echo $GITHUB_SHA
-          echo $(git rev-parse HEAD)
-          echo PR_HEAD_SHA=$PR_HEAD_SHA
-          echo FALLBACK=${PR_HEAD_SHA:-$GITHUB_SHA}
-          echo "============================"
-
+          SHA=${PR_HEAD_SHA:-$GITHUB_SHA}
           NAME='@${{ github.repository }}'
-          VERSION=$(cat package.json | jq -r .version)-$(git rev-parse HEAD | cut -c 1-8)
+          VERSION=$(cat package.json | jq -r .version)-$($SHA | cut -c 1-8)
           echo $(jq ".name = \"${NAME}\"" package.json) > package.json
           echo $(jq ".version = \"${VERSION}\"" package.json) > package.json
       - run: npm ci
