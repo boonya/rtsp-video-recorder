@@ -16,7 +16,7 @@ jobs:
           echo $GITHUB_SHA
           echo $(git rev-parse HEAD)
           echo PR_HEAD_SHA=$PR_HEAD_SHA
-          echo FALLBACK=${PR_HEAD_SHA:$GITHUB_SHA}
+          echo FALLBACK=${PR_HEAD_SHA:-$GITHUB_SHA}
           echo "============================"
 
           NAME='@${{ github.repository }}'
