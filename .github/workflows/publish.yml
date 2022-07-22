@@ -11,9 +11,10 @@ jobs:
           node-version-file: ".nvmrc"
           registry-url: "https://npm.pkg.github.com"
       - run: |
+          NAME='@${{ github.repository }}'
           VERSION=$(cat package.json | jq -r .version)-$GITHUB_SHA
-          jq '.name = "@${{ github.repository }}"' package.json > tmp && mv tmp package.json
-          jq ".version = \"${VERSION}\"" package.json > tmp && mv tmp package.json
+          echo "(jq ".name = \"${NAME}\"" package.json)" > package.json
+          echo $(jq ".version = \"${VERSION}\"" package.json) > package.json
       - run: npm ci
       - run: npm run build
       - run: npm publish
