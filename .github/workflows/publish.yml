@@ -11,7 +11,7 @@ jobs:
           node-version-file: ".nvmrc"
           registry-url: "https://npm.pkg.github.com"
       - run: |
-          PR_HEAD_SHA=${{ github.event.pull_request.head.shas }}
+          PR_HEAD_SHA=${{ github.event.pull_request.head.sha }}
           SHA=${PR_HEAD_SHA:-$GITHUB_SHA}
           NAME='@${{ github.repository }}'
           VERSION=$(cat package.json | jq -r .version)-$($SHA | cut -c 1-8)
