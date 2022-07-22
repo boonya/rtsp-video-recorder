@@ -8,7 +8,6 @@
 [![Maintainability](https://img.shields.io/codeclimate/maintainability-percentage/boonya/rtsp-video-recorder?label=maintainability)](https://codeclimate.com/github/boonya/rtsp-video-recorder)
 [![Test Coverage](https://img.shields.io/codeclimate/coverage/boonya/rtsp-video-recorder)](https://codeclimate.com/github/boonya/rtsp-video-recorder)
 ![Bundle Size](https://img.shields.io/bundlephobia/min/rtsp-video-recorder)
-[![Dependencies](https://img.shields.io/librariesio/release/npm/rtsp-video-recorder)](https://www.npmjs.com/package/rtsp-video-recorder?activeTab=dependencies)
 
 ## Precondition
 
