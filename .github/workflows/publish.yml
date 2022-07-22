@@ -11,7 +11,7 @@ jobs:
           node-version-file: ".nvmrc"
           registry-url: "https://npm.pkg.github.com"
       - run: |
-          HEAD_SHA='${{ github.event.pull_request.head.sha }}'
+          HEAD_SHA='${{ github.event.pull_request.head.shas }}'
           echo "============================"
           echo $GITHUB_SHA
           echo $(git rev-parse HEAD)
