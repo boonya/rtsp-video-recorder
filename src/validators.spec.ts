@@ -1,5 +1,4 @@
 import pathApi from 'path';
-
 import {
 	verifyPath,
 	verifySegmentTime,
@@ -7,7 +6,7 @@ import {
 	verifyDirSizeThresholdMinimum,
 	verifySegmentTimeMinimum,
 	verifyAllOptions,
-} from '../src/validators';
+} from './validators';
 
 describe('verifyPath', () => {
 	test('Valid', () => {

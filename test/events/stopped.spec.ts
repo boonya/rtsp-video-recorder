@@ -1,7 +1,7 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { verifyAllOptions } from '../../src/validators';
 import playlistName from '../../src/helpers/playlistName';
-import {mockSpawnProcess, URI, DESTINATION} from '../test.helpers';
+import { mockSpawnProcess, URI, DESTINATION } from '../helpers';
 import Recorder, { RecorderEvents } from '../../src/recorder';
 
 jest.mock('../../src/validators');
