@@ -19,7 +19,7 @@
     "lint": "npm run types && npm run eslint --",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "build": "tsc"
+    "build": "rm -r dist && tsc"
   },
   "keywords": [
     "rtsp",
