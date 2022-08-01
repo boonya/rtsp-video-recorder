@@ -10,10 +10,7 @@ function getErrorMessage(err: unknown) {
 		|| 'Something went wrong';
 }
 
-/**
- * @return false or string
- */
-export function verifyPath(value: string): false|string {
+export function verifyPath(value: string): false | string {
 	try {
 		const path = pathApi.resolve(value);
 		if (!directoryExists(path)) {
@@ -25,10 +22,7 @@ export function verifyPath(value: string): false|string {
 	return false;
 }
 
-/**
- * @return false or string
- */
-export function verifySegmentTime(value: SegmentTimeOption): false|string {
+export function verifySegmentTime(value: SegmentTimeOption): false | string {
 	if (typeof value === 'number') {
 		const error = verifySegmentTimeMinimum(value);
 		if (error) {
@@ -51,10 +45,7 @@ export function verifySegmentTime(value: SegmentTimeOption): false|string {
 	return false;
 }
 
-/**
- * @return false or string
- */
-export function verifyDirSizeThreshold(value: DirSizeThresholdOption): false|string {
+export function verifyDirSizeThreshold(value: DirSizeThresholdOption): false | string {
 	if (typeof value === 'number') {
 		const error = verifyDirSizeThresholdMinimum(value);
 		if (error) {
@@ -77,18 +68,12 @@ export function verifyDirSizeThreshold(value: DirSizeThresholdOption): false|str
 	return false;
 }
 
-/**
- * @return false or string
- */
-export function verifyDirSizeThresholdMinimum(value: number): false|string {
+export function verifyDirSizeThresholdMinimum(value: number): false | string {
 	return value < 200 * Math.pow(1024, 2)
 		&& 'There is no sense to set dirSizeThreshold value to less that 200 MB.';
 }
 
-/**
- * @returns false or string
- */
-export function verifySegmentTimeMinimum(value: number): false|string {
+export function verifySegmentTimeMinimum(value: number): false | string {
 	return value < 15
 		&& 'There is no sense to set duration value to less than 15 seconds.';
 }

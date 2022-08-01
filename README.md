@@ -1,6 +1,12 @@
 # RTSP Video Recorder
 
-## Provides an API to record rtsp video stream as a mp4 files splitted out on segments
+## Provides an API to record rtsp video stream as a mp4 files splitted out on separate segments
+
+- Does not depend on any other third-party packages at a production environment.
+- Small bundle size
+- Fluent Interface
+- Event Emitter
+- Very customizable
 
 [![Linting, types checking, testing](https://github.com/boonya/rtsp-video-recorder/actions/workflows/push.yml/badge.svg)](https://github.com/boonya/rtsp-video-recorder/actions/workflows/push.yml?query=event%3Apush+branch%3Amaster)
 [![Publishing](https://github.com/boonya/rtsp-video-recorder/actions/workflows/release.yml/badge.svg)](https://github.com/boonya/rtsp-video-recorder/actions/workflows/release.yml?query=event%3Arelease)
@@ -8,7 +14,6 @@
 [![Maintainability](https://img.shields.io/codeclimate/maintainability-percentage/boonya/rtsp-video-recorder?label=maintainability)](https://codeclimate.com/github/boonya/rtsp-video-recorder)
 [![Test Coverage](https://img.shields.io/codeclimate/coverage/boonya/rtsp-video-recorder)](https://codeclimate.com/github/boonya/rtsp-video-recorder)
 ![Bundle Size](https://img.shields.io/bundlephobia/min/rtsp-video-recorder)
-[![Dependencies](https://img.shields.io/librariesio/release/npm/rtsp-video-recorder)](https://www.npmjs.com/package/rtsp-video-recorder?activeTab=dependencies)
 
 ## Precondition
 
@@ -37,21 +42,29 @@ After that you can use it like on example below
 ### Init an instance of recorder
 
 ```ts
-import Recorder, { RecorderEvents } from 'rtsp-video-recorder';
+import Recorder, { RecorderEvents } from "rtsp-video-recorder";
 
-const recorder = new Recorder('rtsp://username:password@host/path', '/media/Recorder', {
-  title: 'Test Camera',
-});
+const recorder = new Recorder(
+  "rtsp://username:password@host/path",
+  "/media/Recorder",
+  {
+    title: "Test Camera",
+  }
+);
 ```
 
 if you application is a CommonJs module you should be able do the same this way:
 
 ```js
-const {Recorder, RecorderEvents} = require('rtsp-video-recorder');
+const { Recorder, RecorderEvents } = require("rtsp-video-recorder");
 
-const recorder = new Recorder('rtsp://username:password@host/path', '/media/Recorder', {
-  title: 'Test Camera',
-});
+const recorder = new Recorder(
+  "rtsp://username:password@host/path",
+  "/media/Recorder",
+  {
+    title: "Test Camera",
+  }
+);
 ```
 
 ### Start recording
@@ -77,9 +90,9 @@ recorder.isRecording();
 ### It also supports [Fluent Interface](https://en.wikipedia.org/wiki/Fluent_interface#JavaScript)
 
 ```ts
-import Recorder, { RecorderEvents } from 'rtsp-video-recorder';
+import Recorder, { RecorderEvents } from "rtsp-video-recorder";
 
-new Recorder('rtsp://username:password@host/path', '/media/Recorder')
+new Recorder("rtsp://username:password@host/path", "/media/Recorder")
   .on(RecorderEvents.STARTED, onStarted)
   .on(RecorderEvents.STOPPED, onStopped)
   .on(RecorderEvents.FILE_CREATED, onFileCreated)
@@ -142,7 +155,7 @@ In case you need to specify a path to ffmpeg binary you can do it using this arg
 
 ```ts
 recorder.on(RecorderEvents.START, (payload) => {
-  assert.equal(payload, 'programmatically');
+  assert.equal(payload, "programmatically");
 });
 ```
 
@@ -152,7 +165,7 @@ Normal stop
 
 ```ts
 recorder.on(RecorderEvents.STOP, (payload) => {
-  assert.equal(payload, 'programmatically');
+  assert.equal(payload, "programmatically");
 });
 ```
 
@@ -160,7 +173,7 @@ If space full
 
 ```ts
 recorder.on(RecorderEvents.STOP, (payload) => {
-  assert.equal(payload, 'space_full');
+  assert.equal(payload, "space_full");
 });
 ```
 
@@ -168,7 +181,7 @@ In case of other errors
 
 ```ts
 recorder.on(RecorderEvents.STOP, (payload) => {
-  assert.equal(payload, 'error', Error);
+  assert.equal(payload, "error", Error);
 });
 ```
 
@@ -182,14 +195,14 @@ Handler receives an object that contains options applied to the current process
 ```ts
 recorder.on(RecorderEvents.STARTED, (payload) => {
   assert.equal(payload, {
-    uri: 'rtsp://username:password@host/path',
-    destination: '/media/Recorder',
-    playlist: 'playlist.m3u8',
-    title: 'Test Camera',
-    filePattern: '%Y.%m.%d/%H.%M.%S',
+    uri: "rtsp://username:password@host/path",
+    destination: "/media/Recorder",
+    playlist: "playlist.m3u8",
+    title: "Test Camera",
+    filePattern: "%Y.%m.%d/%H.%M.%S",
     segmentTime: 600,
     noAudio: false,
-    ffmpegBinary: 'ffmpeg',
+    ffmpegBinary: "ffmpeg",
   });
 });
 ```
@@ -200,7 +213,7 @@ If stopped because of space full handler receives 0 exit code & reason message '
 
 ```ts
 recorder.on(RecorderEvents.STOPPED, (payload) => {
-  assert.equal(payload, 0, 'space_full');
+  assert.equal(payload, 0, "space_full");
 });
 ```
 
@@ -208,7 +221,7 @@ Or if stop reason is FFMPEG process exited, handler receives an exit code of ffm
 
 ```ts
 recorder.on(RecorderEvents.STOPPED, (payload) => {
-  assert.equal(payload, 255, 'ffmpeg_exited');
+  assert.equal(payload, 255, "ffmpeg_exited");
 });
 ```
 
