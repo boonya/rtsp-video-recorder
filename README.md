@@ -8,8 +8,8 @@
 - Event Emitter
 - Very customizable
 
-[![Linting, types checking, testing](https://github.com/boonya/rtsp-video-recorder/actions/workflows/push.yml/badge.svg)](https://github.com/boonya/rtsp-video-recorder/actions/workflows/push.yml?query=event%3Apush+branch%3Amaster)
-[![Publishing](https://github.com/boonya/rtsp-video-recorder/actions/workflows/release.yml/badge.svg)](https://github.com/boonya/rtsp-video-recorder/actions/workflows/release.yml?query=event%3Arelease)
+[![Validation & build](https://github.com/boonya/rtsp-video-recorder/actions/workflows/push.yml/badge.svg)](https://github.com/boonya/rtsp-video-recorder/actions/workflows/push.yml)
+[![Release](https://github.com/boonya/rtsp-video-recorder/actions/workflows/release.yml/badge.svg)](https://github.com/boonya/rtsp-video-recorder/actions/workflows/release.yml)
 [![npm](https://img.shields.io/npm/v/rtsp-video-recorder)](https://www.npmjs.com/package/rtsp-video-recorder)
 [![Maintainability](https://img.shields.io/codeclimate/maintainability-percentage/boonya/rtsp-video-recorder?label=maintainability)](https://codeclimate.com/github/boonya/rtsp-video-recorder)
 [![Test Coverage](https://img.shields.io/codeclimate/coverage/boonya/rtsp-video-recorder)](https://codeclimate.com/github/boonya/rtsp-video-recorder)

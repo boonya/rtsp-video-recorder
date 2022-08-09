@@ -1,4 +1,4 @@
-name: "On push or PR 🏭"
+name: "Validation & build 🏭"
 
 on:
   push:
