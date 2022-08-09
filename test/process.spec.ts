@@ -1,4 +1,4 @@
-import { mockSpawnProcess, URI, DESTINATION } from './test.helpers';
+import { mockSpawnProcess, URI, DESTINATION } from './helpers';
 import Recorder from '../src/recorder';
 import { verifyAllOptions } from '../src/validators';
 import { Options } from '../src/types';

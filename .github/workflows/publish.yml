@@ -1,3 +1,5 @@
+name: "Publish to npm.pkg.github.com 🎁"
+
 on:
   workflow_call:
 
