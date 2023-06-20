@@ -1,15 +1,10 @@
-export type SegmentTimeOption = number | string;
-export type DirSizeThresholdOption = number | string;
+import {SegmentTimeSchema, DirSizeThresholdSchema, OptionsSchema} from './schemas';
+import { z } from 'zod';
 
-export type Options = Partial<{
-	title: string;
-	playlistName: string;
-	filePattern: string;
-	segmentTime: SegmentTimeOption;
-	dirSizeThreshold: DirSizeThresholdOption;
-	ffmpegBinary: string;
-	noAudio: boolean;
-}>;
+export type SegmentTimeOption = z.infer<typeof SegmentTimeSchema>;
+export type DirSizeThresholdOption = z.infer<typeof DirSizeThresholdSchema>;
+
+export type Options = z.infer<typeof OptionsSchema>;
 
 export type EventCallback = (...args: any[]) => void;
 

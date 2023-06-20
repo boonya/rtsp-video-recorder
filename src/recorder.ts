@@ -36,28 +36,28 @@ export default class Recorder implements IRecorder {
 	private process: ChildProcessWithoutNullStreams | null = null;
 	private eventEmitter: EventEmitter;
 
-	constructor(private uri: string, private destination: string, options: Options = {}) {
+	constructor(private uri: string, private destination: string, options?: Options) {
 		const errors = verifyAllOptions(destination, options);
 		if (errors.length) {
 			throw new RecorderValidationError('Options invalid', errors);
 		}
 
-		this.title = options.title;
-		this.ffmpegBinary = options.ffmpegBinary || this.ffmpegBinary;
-		this.playlistName = playlistName(options.playlistName);
-		this.filePattern = (options.filePattern || this.filePattern)
+		this.title = options?.title;
+		this.ffmpegBinary = options?.ffmpegBinary || this.ffmpegBinary;
+		this.playlistName = playlistName(options?.playlistName);
+		this.filePattern = (options?.filePattern || this.filePattern)
 			.replace(/[\s:]+/gu, '_')
 			.replace(/_+/ug, '_');
 
-		this.segmentTime = options.segmentTime
+		this.segmentTime = options?.segmentTime
 			? transformSegmentTime(options.segmentTime)
 			: this.segmentTime;
 
-		this.dirSizeThreshold = options.dirSizeThreshold
+		this.dirSizeThreshold = options?.dirSizeThreshold
 			? transformDirSizeThreshold(options.dirSizeThreshold)
 			: undefined;
 
-		this.noAudio = options.noAudio || false;
+		this.noAudio = options?.noAudio || false;
 
 		this.eventEmitter = new EventEmitter();
 

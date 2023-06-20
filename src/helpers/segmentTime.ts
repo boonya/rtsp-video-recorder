@@ -1,6 +1,6 @@
 import { DurationFactor, SegmentTimeOption } from '../types';
 
-const SEGMENT_TIME_PATTERN = /^(\d+)(s|m|h)?$/;
+export const SEGMENT_TIME_PATTERN = /^(\d+)(s|m|h)?$/;
 
 export default function transformSegmentTime(value: SegmentTimeOption) {
 	if (typeof value === 'number') return value;
