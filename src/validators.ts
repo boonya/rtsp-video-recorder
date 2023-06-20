@@ -1,4 +1,5 @@
 import { Options, SegmentTimeOption, DirSizeThresholdOption } from './types';
+import { OptionsSchema } from './schemas';
 import directoryExists from './helpers/directoryExists';
 import pathApi from 'path';
 import transformDirSizeThreshold from './helpers/sizeThreshold';
@@ -78,8 +79,15 @@ export function verifySegmentTimeMinimum(value: number): false | string {
 		&& 'There is no sense to set duration value to less than 15 seconds.';
 }
 
-export function verifyAllOptions(path: string, { segmentTime, dirSizeThreshold }: Options): string[] {
+export function verifyAllOptions(path: string, options?: Options): string[] {
 	const errors: string[] = [];
+
+	if (!options) {
+		return errors;
+	}
+
+	OptionsSchema.parse(options);
+	const { segmentTime, dirSizeThreshold } = options;
 
 	const pathError = verifyPath(path);
 	if (pathError) errors.push(pathError);

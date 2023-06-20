@@ -1,6 +1,6 @@
 {
   "name": "rtsp-video-recorder",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Provide an API to record rtsp video stream to filesystem.",
   "main": "dist/recorder.js",
   "types": "dist/recorder.d.ts",
@@ -30,6 +30,9 @@
   ],
   "author": "Serhii [boonya] Buinytskyi",
   "license": "MIT",
+  "dependencies": {
+    "zod": "^3.21.4"
+  },
   "devDependencies": {
     "@tsconfig/node18": "^2.0.1",
     "@types/jest": "^29.5.2",

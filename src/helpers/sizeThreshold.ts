@@ -1,6 +1,6 @@
 import { BytesFactor, DirSizeThresholdOption } from '../types';
 
-const DIR_SIZE_THRESHOLD_PATTERN = /^(\d+)(M|G|T)?$/;
+export const DIR_SIZE_THRESHOLD_PATTERN = /^(\d+)(M|G|T)?$/;
 
 export default function transformDirSizeThreshold(value: DirSizeThresholdOption) {
 	if (typeof value === 'number') return value;
